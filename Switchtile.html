@@ -24,7 +24,7 @@
 window.addEventListener("load", init, false);
 document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 
-var pEvent="single";
+var pEvent = "single";
 var cnt = 0; // move count
 var times = {};
 var avgLengths = [5,12,100];
@@ -70,6 +70,7 @@ function loadAll() {
     $('sizeText').value = n;
     $('moves').innerHTML = "";
     $('relayText').value = relayData;
+    $('zoomText').value = cwidth;
     showProgress();
  
     theCanvas = $('c');
@@ -230,12 +231,20 @@ function doKey(e) {
 
     if (keyCode == 68) {
         doMove(0, currentY, true); // right
+        if (shift)
+            doMove(0, currentY, true); // right
     } else if (keyCode == 83) {
         doMove(1, currentX, true); // down
+        if (shift)
+            doMove(1, currentX, true); 
     } else if (keyCode == 87) {
-        doMove(2, currentX, true); // up
+        doMove(2, currentX, true); // up  
+        if (shift)
+            doMove(2, currentX, true); // up  
     } else if (keyCode == 65) {
         doMove(3, currentY, true); // left
+        if (shift)
+            doMove(3, currentY, true); // left
     }
 
     // space to scramble
@@ -391,13 +400,13 @@ function changeDimensions(newWidth, newHeight) {
 }
 
 function showProgress() {
- if (pEvent == "single") {
-  $('progress').innerHTML = "";
- } else if (pEvent == "marathon") {
-  $('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
- } else if (pEvent == "relay") {
-  $('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
- }
+    if (pEvent == "single") {
+        $('progress').innerHTML = "";
+    } else if (pEvent == "marathon") {
+        $('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
+    } else if (pEvent == "relay") {
+        $('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
+    }
 }
 
 /************
@@ -406,61 +415,61 @@ function showProgress() {
 
 // redraw everything
 function drawScreen() {
- var w = theCanvas.width, h = theCanvas.height;
- context.fillStyle = "#999";
- context.fillRect(0, 0, w, h);
+    var w = theCanvas.width, h = theCanvas.height;
+    context.fillStyle = "#999";
+    context.fillRect(0, 0, w, h);
  
- var s = Math.min(w,h);
- var wgap = (w - s)/2;
- var hgap = (h - s)/2;
+    var s = Math.min(w,h);
+    var wgap = (w - s)/2;
+    var hgap = (h - s)/2;
  
- for (i=0; i<n; i++) {
-  for (j=0; j<n; j++) {
-   drawTile(squares[i][j], wgap + s * j / n, hgap + s * i / n,
-                           wgap + s * (j+1) / n, hgap + s * (i+1) / n);
-  }
- }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            drawTile(squares[i][j], wgap + s * j / n, hgap + s * i / n, 
+                wgap + s * (j+1) / n, hgap + s * (i+1) / n);
+        }
+    }
 }
  
 // draw one tile on the screen
 // color = what type of tile it is, x1/y1/x2/y2 = coordinates of square
 function drawTile(type, x1, y1, x2, y2) {
- context.strokeStyle = "#999";
- context.lineWidth = Math.max(1, Math.min(cwidth, cheight)/(n*10));
- if (type == 2 || type == 4 || type == 6 || type == 8) {
-  context.fillStyle = colors[type];
-  context.fillRect(x1, y1, x2-x1, y2-y1);
- } else if (type == 1) {
-  drawTriangle(colors[2], x2,y1, x2,y2, x1,y2);
-  drawTriangle(colors[4], x2,y1, x1,y1, x1,y2);
- } else if (type == 3) {
-  drawTriangle(colors[2], x1,y1, x1,y2, x2,y2);
-  drawTriangle(colors[6], x1,y1, x2,y1, x2,y2);
- } else if (type == 5) {
-  drawTriangle(colors[2], x2,y2, x1,y2, (x2+x1)/2,(y2+y1)/2);
-  drawTriangle(colors[4], x1,y1, x1,y2, (x2+x1)/2,(y2+y1)/2);
-  drawTriangle(colors[6], x2,y2, x2,y1, (x2+x1)/2,(y2+y1)/2);
-  drawTriangle(colors[8], x1,y1, x2,y1, (x2+x1)/2,(y2+y1)/2);
- } else if (type == 7) {
-  drawTriangle(colors[4], x1,y1, x1,y2, x2,y2);
-  drawTriangle(colors[8], x1,y1, x2,y1, x2,y2);
- } else if (type == 9) {
-  drawTriangle(colors[6], x2,y1, x2,y2, x1,y2);
-  drawTriangle(colors[8], x2,y1, x1,y1, x1,y2);
- }
- context.strokeRect(x1, y1, x2-x1, y2-y1);
+    context.strokeStyle = "#999";
+    context.lineWidth = Math.max(1, Math.min(cwidth, cheight)/(n*10));
+    if (type == 2 || type == 4 || type == 6 || type == 8) {
+        context.fillStyle = colors[type];
+        context.fillRect(x1, y1, x2-x1, y2-y1);
+    } else if (type == 1) {
+        drawTriangle(colors[2], x2,y1, x2,y2, x1,y2);
+        drawTriangle(colors[4], x2,y1, x1,y1, x1,y2);
+    } else if (type == 3) {
+        drawTriangle(colors[2], x1,y1, x1,y2, x2,y2);
+        drawTriangle(colors[6], x1,y1, x2,y1, x2,y2);
+    } else if (type == 5) {
+        drawTriangle(colors[2], x2,y2, x1,y2, (x2+x1)/2,(y2+y1)/2);
+        drawTriangle(colors[4], x1,y1, x1,y2, (x2+x1)/2,(y2+y1)/2);
+        drawTriangle(colors[6], x2,y2, x2,y1, (x2+x1)/2,(y2+y1)/2);
+        drawTriangle(colors[8], x1,y1, x2,y1, (x2+x1)/2,(y2+y1)/2);
+    } else if (type == 7) {
+        drawTriangle(colors[4], x1,y1, x1,y2, x2,y2);
+        drawTriangle(colors[8], x1,y1, x2,y1, x2,y2);
+    } else if (type == 9) {
+        drawTriangle(colors[6], x2,y1, x2,y2, x1,y2);
+        drawTriangle(colors[8], x2,y1, x1,y1, x1,y2);
+    }
+    context.strokeRect(x1, y1, x2-x1, y2-y1);
 }
  
 // draw a triangle
 // fillColor = color of triangle, x1/y1/x2/y2/x3/y3 = vertices
 function drawTriangle(fillColor, x1, y1, x2, y2, x3, y3) {
- context.fillStyle = fillColor;
- context.beginPath();
- context.moveTo(x1, y1);
- context.lineTo(x2, y2);
- context.lineTo(x3, y3);
- context.closePath();
- context.fill();
+    context.fillStyle = fillColor;
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.lineTo(x3, y3);
+    context.closePath();
+    context.fill();
 }
 
 /******************
@@ -509,26 +518,35 @@ function doMove(direction, layer, redraw) {
  
 // get a solved array
 function solvedSquares() {
- sqr = [];
- for (i=0; i<n; i++) {
-  sqr[i] = [];
-  for (j=0; j<n; j++) {
-   // determine the "color" of a square. imagine the numpad
-   if (i>j && i+j+1==n) {   sqr[i][j] = 1;
-   } else if (i>j && i+j+1>n) { sqr[i][j] = 2;
-   } else if (i==j && i+j+1>n) { sqr[i][j] = 3;
-   } else if (i>j && i+j+1<n) { sqr[i][j] = 4;
-   } else if (i==j && i+j+1==n) { sqr[i][j] = 5;
-   } else if (i<j && i+j+1>n) { sqr[i][j] = 6;
-   } else if (i==j && i+j+1<n) { sqr[i][j] = 7;
-   } else if (i<j && i+j+1<n) { sqr[i][j] = 8;
-   } else if (i<j && i+j+1==n) { sqr[i][j] = 9;
-   } else {
-    sqr[i][j] = -1;
-   }
-  }
- }
- return sqr;
+    sqr = [];
+    for (i=0; i<n; i++) {
+        sqr[i] = [];
+        for (j=0; j<n; j++) {
+            // determine the "color" of a square. imagine the numpad
+            if (i>j && i+j+1==n) { 
+                sqr[i][j] = 1;
+            } else if (i>j && i+j+1>n) { 
+                sqr[i][j] = 2;
+            } else if (i==j && i+j+1>n) { 
+                sqr[i][j] = 3;
+            } else if (i>j && i+j+1<n) { 
+                sqr[i][j] = 4;
+            } else if (i==j && i+j+1==n) { 
+                sqr[i][j] = 5;
+            } else if (i<j && i+j+1>n) { 
+                sqr[i][j] = 6;
+            } else if (i==j && i+j+1<n) { 
+                sqr[i][j] = 7;
+            } else if (i<j && i+j+1<n) { 
+                sqr[i][j] = 8;
+            } else if (i<j && i+j+1==n) { 
+                sqr[i][j] = 9;
+            } else {
+                sqr[i][j] = -1;
+            }
+        }
+    }
+    return sqr;
 }
 
 // check if our position is solved
@@ -632,7 +650,7 @@ function displayTimes(loadedPage, time) {
         var len = avgLengths[i];
         if (times[n].length >= len) {
             var avgData = getAvg(len, times[n].slice(times[n].length - len));
-            v += "Current avg" + len + ": " + (len<100?avgData[0]:pretty(avgData[1])) + "<br>";
+            v += "<br>Current avg" + len + ": " + (len<100?avgData[0]:pretty(avgData[1])) + "<br>";
             v += "Best avg" + len + ": ";
             if (loadedPage) {
                 // compute best average from scratch
@@ -659,11 +677,13 @@ function displayTimes(loadedPage, time) {
                     v += pretty(bestAverages[i][1]) + "<br>";
                 }
             }
+            v += ""
         }
     }
     $('stats').innerHTML = v;
     if (!loadedPage) {
-        $('moves').innerHTML = cnt + " moves at " + Math.round(100000*cnt/time)/100 + " moves/sec";
+        $('moves').innerHTML = cnt + " moves at " + Math.round(100000*cnt/time)/100 + " moves/sec<br>" + 
+        Math.round(1000*(cnt/(n*n)))/1000 + " moves per piece";
     } else {
         $('moves').innerHTML = "";
     }
@@ -702,7 +722,6 @@ function clearTimes() {
 /********************
  * HELPER FUNCTIONS *
  ********************/
- 
 function saveStuff() {
     if (window.localStorage !== undefined) {
         window.localStorage.setItem("switchtile_pEvent",pEvent);
@@ -717,16 +736,8 @@ function loadStuff() {
         var tmp = window.localStorage.getItem("switchtile_pEvent");
         if (tmp != null) 
             pEvent = tmp;
+
         times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
-        // if (tmp != null) {
-        //     timesArr = tmp.split(":");
-        //     times = [];
-        //     for (i=0; i<timesArr.length; i++) {
-        //         if (!isNaN(parseInt(timesArr[i]))) {
-        //             times.push(parseInt(timesArr[i]));
-        //         }
-        //     }
-        // }
         tmp = window.localStorage.getItem("switchtile_relayData");
         if (tmp != null) 
             relayData = tmp;
