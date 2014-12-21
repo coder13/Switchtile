@@ -1,7 +1,7 @@
 var fs = require("fs"),
 	Hapi = require("hapi"),
 	serverPort = +(process.argv[2]?process.argv[2]:8000),
-	users = require('users.json');
+	users = require('./users.json');
 
 process.on('SIGINT', function() {
 	fs.writeFileSync("users.json", JSON.stringify(users));
