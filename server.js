@@ -33,6 +33,16 @@ server.route({path: "/users/{name}", method: "GET",
     }
 });
 
+server.route({path: "/users/{name}", method: "POST",
+	handler: function(request, reply) {
+		var data = request.payload;
+		data.time = +data.time;
+		console.log(request.params.name, data.size, data.time);
+		addTimes(request.params.name, data.size, data.time);
+		reply(data);
+	}
+});
+
 server.start(function() {
     console.log("Server started at ", server.info.uri);
 });
@@ -42,6 +52,16 @@ function getUser(name) {
 	if (!users[name])
 		users[name] = {};
 	return users[name];
+}
+
+function addTimes(name, size, times) {
+	user = getUser(name);
+	if (!user[size]) {
+		user[size] = [times];
+		console.log(user[size]);
+	} else {
+		user[size] = user[size].concat(times);
+	}
 }
 
 // if (req.url == '/' || req.url == '/favicon.ico')

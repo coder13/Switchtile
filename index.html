@@ -44,7 +44,7 @@ var dragStartX, dragStartY;
 var currentX, currentY;
 var context;
 var canvas;
-var cwidth=600, cheight=600; // size of canvas
+var cwidth=300, cheight=300; // size of canvas
 
 var n = 3;
 var squares;
@@ -631,6 +631,20 @@ function stopTimer(good) {
             times[n].push(time);
             // figure out averages and display
             displayTimes(false, time);
+        
+            console.log({size: n, time: time});
+            $.ajax('users/Caleb', {
+                type: "POST",
+                data: {size: n, time: time},
+                dataType: 'json',
+                statusCode: {
+                    404: function() {
+                      alert( "page not found" );
+                    }
+                }
+            }).done(function(data) {
+                console.log('recieved: ', data);
+            });
         }
     }
 }
@@ -656,7 +670,7 @@ function displayTimes(loadedPage, time) {
             v += "Best avg" + len + ": ";
             if (loadedPage) {
                 // compute best average from scratch
-                for (j=0; j<=times[n].length-len; j++) {
+                for (j=0; j <= times[n].length-len; j++) {
                         var thisAvg = getAvg(len, times[n].slice(j, len+j));
                     if (j==0 || thisAvg[1] < bestAverages[i][1]) {
                         bestAverages[i] = thisAvg;
@@ -742,7 +756,6 @@ function loadStuff() {
 
         $.getJSON( "users/Caleb", function(data) {
             times = data;
-            while (!document.ready()) {};
             displayTimes(true);
         });
 
@@ -762,7 +775,7 @@ function loadStuff() {
     }
 }
 
-// function document.getElementById(str) {
+// function $(str) {
 //     return document.getElementById(str);
 // }
 
