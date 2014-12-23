@@ -176,7 +176,7 @@ function mouseMoveListener(evt) {
     currentY = Math.floor((currentY - hgap) * (n/s));
 }
 
-function pressSpacebar() {
+function pressSpacebar(casual) {
     if (solving) {
         if (isSolved()) {
             finishSolve();
@@ -190,8 +190,8 @@ function pressSpacebar() {
         showProgress();
         scramble();
         cnt = 0;
-        started = false;
-        solving = true;
+        started = casual;
+        solving = !casual;
     }
 }
 
@@ -251,7 +251,7 @@ function doKey(e) {
 
     // space to scramble
     if (keyCode == 32) {
-        pressSpacebar();
+        pressSpacebar(shift);
     }
 
     //+ - for cube size
@@ -580,7 +580,7 @@ function scramble() {
         }
   
         // if n==3, make sure to have proper parity
-        if (n==3 && nswaps%2 == 1) {
+        if (n == 3 && nswaps % 2 == 1) {
             var tmp = squares[n-1][n-2];
             squares[n-1][n-2] = squares[n-1][n-1];
             squares[n-1][n-1] = tmp;
@@ -740,7 +740,9 @@ function loadStuff() {
         if (tmp != null) 
             pEvent = tmp;
 
-        $.getJSON( "users/Caleb", function(data) {
+        // get times
+        name = "Caleb";
+        $.getJSON("users/" + name, function(data) {
             times = data;
             while (!document.ready()) {};
             displayTimes(true);
@@ -820,7 +822,7 @@ Event: <select id="pEvent" onchange="changedEvent(true);reset()">
 </td></tr><tr>
 <td><div id="relaydata">Relay data: <input id="relayText" size="10" onchange="changedEvent(true)"></div>
 </td>
-<td><input type="button" onclick="pressSpacebar()" value="Scramble" /><input type="button" onclick="pressEscape()" value="Reset" /></td>
+<td><input type="button" onclick="pressSpacebar(false)" value="Scramble" /><input type="button" onclick="pressEscape()" value="Reset" /></td>
 <td width="30%">
 Zoom: <input id="zoomText" size="4" maxlength="4" onchange="changedZoom()"></td>
 </tr></table>

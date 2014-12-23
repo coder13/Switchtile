@@ -5,7 +5,7 @@ var fs = require("fs"),
 
 process.on('SIGINT', function() {
 	fs.writeFileSync("users.json", JSON.stringify(users));
-	process.kill(0)
+	process.kill(0);
 });
 
 var server = new Hapi.Server();
@@ -18,7 +18,7 @@ server.views({
     engines: { html: require('handlebars') },
     path: "./",
     isCached: false,
-})
+});
 
 // routes
 server.route({path: "/", method: "GET",
@@ -43,18 +43,3 @@ function getUser(name) {
 		users[name] = {};
 	return users[name];
 }
-
-// if (req.url == '/' || req.url == '/favicon.ico')
-// 		return;
-// 	if (req.method == 'GET') {
-// 		res.end(JSON.stringify(users[req.url.slice(1)]));
-// 	} else if (req.method == 'POST') {
-// 		req.on('data', function(data) {
-// 			times = JSON.parse(data);
-// 			for (var n in times) {
-// 				users[req.url.slice(1)][n] = users[req.url.slice(1)][n].concat(times[n]);
-// 			}
-// 			console.log(times);
-// 			res.end();
-// 		});
-// 	}
