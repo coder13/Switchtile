@@ -1,12 +1,21 @@
-var fs = require("fs"),
-	Hapi = require("hapi"),
-	serverPort = +(process.argv[2]?process.argv[2]:8000),
+var fs = require('fs'),
+	Hapi = require('hapi'),
+	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	users = require('./users.json');
 
 process.on('SIGINT', function() {
-	fs.writeFileSync("users.json", JSON.stringify(users));
+	save();
 	process.kill(0);
 });
+
+setInterval(function() {
+  console.log("autosaving....");
+  save();
+}, 6 * 60 * 1000);
+
+function save() {
+	fs.writeFileSync('users.json', JSON.stringify(users));
+}
 
 var server = new Hapi.Server();
 server.connection({
