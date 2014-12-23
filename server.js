@@ -33,6 +33,20 @@ server.route({path: "/users/{name}", method: "GET",
     }
 });
 
+
+server.route({path: "/users/{name}", method: "POST",
+    handler: function(request, reply) {
+		user = getUser(request.params.name);
+		data = request.payload;
+		if (!user[data.size]) {
+			user[data.size] = [+data.time];
+		} else {
+			user[data.size] = user[data.size].concat(+data.time);
+		}
+		reply('');
+    }
+});
+
 server.start(function() {
     console.log("Server started at ", server.info.uri);
 });

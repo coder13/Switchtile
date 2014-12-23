@@ -60,6 +60,13 @@ window.onkeydown=function(event){doKey(event)};
  *******************************/
 
 function init() {
+    name = window.localStorage.getItem("name");
+    if (!name) {
+        name = prompt("Please enter your name", "");
+        if (name)
+            window.localStorage.setItem("name", name);
+    }
+
     loadStuff();
     document.bgColor = "black"
     document.fgColor = "white";
@@ -631,6 +638,11 @@ function stopTimer(good) {
             times[n].push(time);
             // figure out averages and display
             displayTimes(false, time);
+
+            $.post("users/" + name, {size: n, time: time})
+            .done(function(data) {
+                alert(data);
+            });
         }
     }
 }
@@ -740,13 +752,16 @@ function loadStuff() {
         if (tmp != null) 
             pEvent = tmp;
 
+
         // get times
-        name = "Caleb";
-        $.getJSON("users/" + name, function(data) {
-            times = data;
-            while (!document.ready()) {};
-            displayTimes(true);
-        });
+        if (name) {
+            $.getJSON("users/" + name, function(data) {
+                times = data;
+                displayTimes(true);
+            });
+        } else {
+            times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
+        }
 
         tmp = window.localStorage.getItem("switchtile_relayData");
         if (tmp != null) 
