@@ -639,10 +639,7 @@ function stopTimer(good) {
             // figure out averages and display
             displayTimes(false, time);
 
-            $.post("users/" + name, {size: n, time: time})
-            .done(function(data) {
-                alert(data);
-            });
+            $.post("users/" + name, {size: n, time: time});
         }
     }
 }
