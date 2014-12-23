@@ -33,18 +33,13 @@ server.route({path: "/users/{name}", method: "GET",
     }
 });
 
-
 server.route({path: "/users/{name}", method: "POST",
-    handler: function(request, reply) {
-		user = getUser(request.params.name);
-		data = request.payload;
-		if (!user[data.size]) {
-			user[data.size] = [+data.time];
-		} else {
-			user[data.size] = user[data.size].concat(+data.time);
-		}
-		reply('');
-    }
+	handler: function(request, reply) {
+		var data = request.payload;
+		data.time = +data.time;
+		addTimes(request.params.name, data.size, data.time);
+		reply(data);
+	}
 });
 
 server.start(function() {
@@ -56,4 +51,13 @@ function getUser(name) {
 	if (!users[name])
 		users[name] = {};
 	return users[name];
+}
+
+function addTimes(name, size, times) {
+	user = getUser(name);
+	if (!user[size]) {
+		user[size] = [times];
+	} else {
+		user[size] = user[size].concat(times);
+	}
 }

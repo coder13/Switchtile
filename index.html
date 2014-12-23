@@ -44,7 +44,7 @@ var dragStartX, dragStartY;
 var currentX, currentY;
 var context;
 var canvas;
-var cwidth=600, cheight=600; // size of canvas
+var cwidth=300, cheight=300; // size of canvas
 
 var n = 3;
 var squares;
@@ -665,7 +665,7 @@ function displayTimes(loadedPage, time) {
             v += "Best avg" + len + ": ";
             if (loadedPage) {
                 // compute best average from scratch
-                for (j=0; j<=times[n].length-len; j++) {
+                for (j=0; j <= times[n].length-len; j++) {
                         var thisAvg = getAvg(len, times[n].slice(j, len+j));
                     if (j==0 || thisAvg[1] < bestAverages[i][1]) {
                         bestAverages[i] = thisAvg;
@@ -749,7 +749,6 @@ function loadStuff() {
         if (tmp != null) 
             pEvent = tmp;
 
-
         // get times
         if (name) {
             $.getJSON("users/" + name, function(data) {
@@ -776,7 +775,7 @@ function loadStuff() {
     }
 }
 
-// function document.getElementById(str) {
+// function $(str) {
 //     return document.getElementById(str);
 // }
 
