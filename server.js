@@ -118,6 +118,8 @@ function getTimes(username) {
 // add time for size. If size doesn't exist, make it
 function addTimes(name, size, times) {
 	userTimes = getTimes(name);
+	if (!userTimes)
+		return;
 	if (!userTimes[size]) {
 		userTimes[size] = [times];
 	} else {
@@ -132,39 +134,41 @@ function calculateBest(name, size) {
 	if (!user.best)
 		user.best = {};
 
+	if (!user.best[size]) {
+		user.best[size] = {};
+	}
+
 	userTimes = getTimes(name);
 
 	var avgLengths = [5,12,100];
 
-	if (!user.best[size]) {
-		user.best[size] = {};
-		var min = 0;
-		for (var i = 1; i < userTimes[size].length; i++) {
-			if (userTimes[size][i] < userTimes[size][min]) {
-				min = i;
-			}
+	var min = 0;
+	for (var i = 1; i < userTimes[size].length; i++) {
+		if (userTimes[size][i] < userTimes[size][min]) {
+			min = i;
 		}
-		user.best.single = userTimes[size][min];
+	}
+	user.best[size].single = userTimes[size][min];
 
-		for (i = 0; i < avgLengths.length; i++) {
-			len = avgLengths[i];
-			if (userTimes[size].length >= len) {
-				for (j = 0; j <= userTimes[size].length - len; j++) {
+	for (i = 0; i < avgLengths.length; i++) {
+		len = avgLengths[i];
+		if (userTimes[size].length >= len) {
+			for (j = 0; j <= userTimes[size].length - len; j++) {
 
-					var avg = getAvg(userTimes[size].slice(j, len+j), size);
-					if (j === 0 || avg < user.best[size][avgLengths]) {
-						user.best[size][len] = avg;
-					}
+				var avg = getAvg(userTimes[size].slice(j, len+j), size);
+				if (j === 0 || avg < user.best[size][len]) {
+					user.best[size][len] = avg;
 				}
 			}
 		}
 	}
+	
 }
 
 function getAvg(list, size) {
 	var max = 0, min = 0;
 	var sum = list[0];
-	for (var i = 1; i < size; i++) {
+	for (var i = 1; i < list.length; i++) {
 		if (list[i] > list[max])
 			max = i;
 		if (list[i] < list[min])
@@ -172,5 +176,5 @@ function getAvg(list, size) {
 		sum += list[i];
 	}
 	sum = sum - list[min] - list[max];
-	return sum/(size-2);
+	return sum/(list.length-2);
 }
