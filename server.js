@@ -137,6 +137,7 @@ function calculateBest(name, size) {
 	var avgLengths = [5,12,100];
 
 	if (!user.best[size]) {
+		user.best[size] = {};
 		var min = 0;
 		for (var i = 1; i < userTimes[size].length; i++) {
 			if (userTimes[size][i] < userTimes[size][min]) {
@@ -151,8 +152,8 @@ function calculateBest(name, size) {
 				for (j = 0; j <= userTimes[size].length - len; j++) {
 
 					var avg = getAvg(userTimes[size].slice(j, len+j), size);
-					if (j === 0 || avg < user.best[avgLengths]) {
-						user.best[len] = avg;
+					if (j === 0 || avg < user.best[size][avgLengths]) {
+						user.best[size][len] = avg;
 					}
 				}
 			}
