@@ -111,7 +111,7 @@ function loadAll() {
 function mouseDownListener(evt) {
     //getting mouse position correctly, being mindful of resizing that may have occurred in the browser:
     var bRect = canvas.getBoundingClientRect();
-    if (evt.changedTouches === null) {
+    if (evt.changedTouches == null) {
         dragStartX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
         dragStartY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
     } else {
@@ -139,7 +139,7 @@ function mouseUpListener(evt) {
         var bRect = canvas.getBoundingClientRect();
         var w = canvas.width, h = canvas.height;
         var dragEndX, dragEndY;
-        if (evt.changedTouches === null) {
+        if (evt.changedTouches == null) {
             dragEndX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
             dragEndY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
         } else {
@@ -361,7 +361,7 @@ function changedEvent(clearTimes) {
         // parse relayData
         relayData = document.getElementById('relayText').value.split(/,| /);
         relayArr = [];
-        for (i=0; i<relayData.length; i++) {
+        for (i = 0; i < relayData.length; i++) {
             var solv = parseInt(relayData[i]);
             if (solv >= 2 && solv <= 1000) {
                 relayArr.push(solv);
@@ -395,9 +395,9 @@ function changeN(newN) {
         if (!agree) 
             return;
     }
-    if (newN < 2) 
+    if (newN < 2)
         newn = 2;
-    if (newN == n) 
+    if (newN == n)
         return;
  
     stopTimer(false);
@@ -653,7 +653,8 @@ function stopTimer(good) {
             // figure out averages and display
             displayTimes(false, time);
 
-            $.post("users/" + name, {size: n, time: time}, 'json');
+            if (name && name !== null && name !== 'null')
+                $.post("users/" + name, {size: n, time: time}, 'json');
         }
     }
 }
@@ -749,10 +750,12 @@ function clearTimes() {
  ********************/
 function saveStuff() {
     if (window.localStorage !== undefined) {
-        window.localStorage.setItem("username", name);
+
         window.localStorage.setItem("switchtile_pEvent",pEvent);
-        if (name && name !== null)
+        if (name && name !== null && name !== 'null') {
+            window.localStorage.setItem("username", name);
             window.localStorage.setItem("switchtile_times", JSON.stringify(times));
+        }
         window.localStorage.setItem("switchtile_relayData",relayData);
         window.localStorage.setItem("switchtile_n",n);
         window.localStorage.setItem("switchtile_zoom",cwidth);
@@ -766,7 +769,7 @@ function loadStuff() {
             pEvent = tmp;
 
         // get times
-        if (name && name !== null) {
+        if (name && name !== null && name !== 'null') {
             $.getJSON("users/" + name, function(data) {
                 times = data;
                 displayTimes(true);
