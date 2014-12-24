@@ -129,7 +129,6 @@ function addTimes(name, size, times) {
 
 function calculateBest(name, size) {
 	user = users[name];
-	console.log(user);
 	if (!user.best)
 		user.best = {};
 
@@ -159,7 +158,6 @@ function calculateBest(name, size) {
 			}
 		}
 	}
-	console.log(user.best);
 }
 
 function getAvg(list, size) {
