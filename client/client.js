@@ -6,7 +6,7 @@
 
 document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 
-var name = "";
+var name = null;
 var pEvent = "single";
 var cnt = 0; // move count
 var times = {};
@@ -36,27 +36,30 @@ var colors = ["white","white","#FF6","white","#48C","white","#5F8","white","#222
 var browser = getBrowser(); // only want to call this once
 
 $(document).ready(function () {
-    name = window.localStorage.getItem("name");
-    name = null;
-    console.log(name);
+    $('#loginButton').prop('disabled', true);
+    name = window.localStorage.getItem('username');
+    console.log(name, typeof(name));
 
-    if (name !== null) {
-        alertify.prompt("Please enter your name:<br>If you cancel, times will be saved locally instead.", "",
-            function(evt, value ) {
-                alertify.success('Saving times as ' + value);
-                window.localStorage.setItem('name', name);
-                name = value;
-                init();
-            },
-            function() {
-                alertify.success('Times will be stored localy');
-                init();
-            });
-    } else {
-        init();
+    if (name && name !== null && name !== 'null') {
+        $("#loginform").hide();
     }
-
+    init();
 });
+
+function login() {
+    var username = $("#username")[0].value,
+        password = $("#password")[0].value;
+
+    $.post("login", {username: username, password: password}, function (data) {
+        if (data) {
+            //login succesful
+            $("#loginform").hide();
+            window.localStorage.setItem('username', username);
+        } else {
+
+        }
+    },'json');
+}
 
 /*******************************
  * CONTROLS AND MAIN FUNCTIONS *
@@ -136,7 +139,7 @@ function mouseUpListener(evt) {
         var bRect = canvas.getBoundingClientRect();
         var w = canvas.width, h = canvas.height;
         var dragEndX, dragEndY;
-        if (evt.changedTouches == null) {
+        if (evt.changedTouches === null) {
             dragEndX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
             dragEndY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
         } else {
@@ -150,7 +153,7 @@ function mouseUpListener(evt) {
         var hgap = (h - s)/2;
         var startX = Math.floor((dragStartX - wgap) * (n/s));
         var startY = Math.floor((dragStartY - hgap) * (n/s));
-        if (startX < 0 || startY < 0 || startX >= n || startY >= n) 
+        if (startX < 0 || startY < 0 || startX >= n || startY >= n)
             return;
 
         // determined direction
@@ -203,7 +206,7 @@ function pressSpacebar(casual) {
 function pressEscape() {
     if(solving) {
         var agree = confirm("Are you SURE? This will stop the timer!");
-        if (!agree) 
+        if (!agree)
             return;
     }
     reset();
@@ -216,6 +219,16 @@ function changedZoom() {
 }
 
 function doKey(e) {
+    if ($(':focus')[0]) {
+        if ($(':focus')[0].id == 'username' || $(':focus')[0].id == 'password') {
+            if ($('#username')[0].value && $('#password')[0].value.length >= 6) {
+                $('#loginButton').prop('disabled', false);
+            } else {
+                $('#loginButton').prop('disabled', true);
+            }
+        }
+    } else {
+
     var keyCode = 0;
     if (e.keyCode) {
         keyCode = e.keyCode;
@@ -243,7 +256,7 @@ function doKey(e) {
     } else if (keyCode == 83) {
         doMove(1, currentX, true); // down
         if (shift)
-            doMove(1, currentX, true); 
+            doMove(1, currentX, true);
     } else if (keyCode == 87) {
         doMove(2, currentX, true); // up  
         if (shift)
@@ -281,6 +294,9 @@ function doKey(e) {
     //escape to reset
     else if (keyCode == 27) {
         pressEscape();
+    }
+    
+
     }
 
 }
@@ -326,7 +342,7 @@ function reset() {
     }
     showProgress();
     nCurrent = 0;
-    if (solving) 
+    if (solving)
         clearTimes();
     stopTimer(false);
     solving = false;
@@ -351,19 +367,19 @@ function changedEvent(clearTimes) {
                 relayArr.push(solv);
             }
         }
-        if (relayArr.length == 0) relayArr = [3];
+        if (relayArr.length === 0) relayArr = [3];
         nCurrent = 0;
         nTotal = relayArr.length;
         n = relayArr[relayArr.length - 1];
     }
-    if (clearTimes) 
-        clearTimes();    
+    if (clearTimes)
+        clearTimes();
     document.getElementById('relaydata').style.display = (pEvent=="relay") ? "" : "none";
     saveStuff();
 }
 
 function changedHideStats() {
-    document.getElementById('stats').style.display = (document.getElementById('hideStats').checked) ? "none" : ""; 
+    document.getElementById('stats').style.display = (document.getElementById('hideStats').checked) ? "none" : "";
     saveStuff();
 }
 
@@ -637,7 +653,7 @@ function stopTimer(good) {
             // figure out averages and display
             displayTimes(false, time);
 
-            $.post("users/" + name, {size: n, time: time});
+            $.post("users/" + name, {size: n, time: time}, 'json');
         }
     }
 }
@@ -733,8 +749,10 @@ function clearTimes() {
  ********************/
 function saveStuff() {
     if (window.localStorage !== undefined) {
+        window.localStorage.setItem("username", name);
         window.localStorage.setItem("switchtile_pEvent",pEvent);
-        window.localStorage.setItem("switchtile_times", JSON.stringify(times));
+        if (name && name !== null)
+            window.localStorage.setItem("switchtile_times", JSON.stringify(times));
         window.localStorage.setItem("switchtile_relayData",relayData);
         window.localStorage.setItem("switchtile_n",n);
         window.localStorage.setItem("switchtile_zoom",cwidth);
@@ -744,11 +762,11 @@ function saveStuff() {
 function loadStuff() {
     if (window.localStorage !== undefined) {
         var tmp = window.localStorage.getItem("switchtile_pEvent");
-        if (tmp != null) 
+        if (tmp !== null)
             pEvent = tmp;
 
         // get times
-        if (name) {
+        if (name && name !== null) {
             $.getJSON("users/" + name, function(data) {
                 times = data;
                 displayTimes(true);
@@ -758,16 +776,16 @@ function loadStuff() {
         }
 
         tmp = window.localStorage.getItem("switchtile_relayData");
-        if (tmp != null) 
+        if (tmp !== null)
             relayData = tmp;
         tmp = window.localStorage.getItem("switchtile_n");
-        if (tmp != null) 
+        if (tmp !== null)
             n = parseInt(tmp);
-        if (n < 2) 
+        if (n < 2)
             n = 2;
         tmp = window.localStorage.getItem("switchtile_zoom");
-        if (tmp != null) {
-            cwidth = parseInt(tmp); 
+        if (tmp !== null) {
+            cwidth = parseInt(tmp);
             cheight = parseInt(tmp);
         }
     }

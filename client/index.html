@@ -14,6 +14,42 @@
         border-style:solid;
         border-width:0;
     }
+
+    .option {
+        display: inline-block;
+        padding-left: 5px;
+        padding-right: 15%;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+
+    #options {
+        height: 24px;
+        position: relative;
+    }
+
+    #hideStats {
+        padding-right: 2px;
+    }
+
+    #scramble {
+        padding-right: 2px;
+    }
+
+    #size {
+        padding: 2px
+    }
+
+    #zoom {
+        padding: 0px;
+    }
+
+    #loginform {
+        float: right;
+        height: 20px;
+        padding-right: 5px;
+    }
+
 </style>
 
 <link rel="stylesheet" href="alertifyjs/css/alertify.min.css"/>
@@ -25,7 +61,7 @@
 </head>
 <body text="white" bgColor="black">
     <div id="options" style="border:1px solid blue">
-        <table style="width:100%"><tr><td>
+        <!-- table style="width:100%"><tr><td>
             Event: <select id="pEvent" onchange="changedEvent(true);reset()">
               <option value="single" selected>single</option>
               <option value="marathon">marathon</option>
@@ -39,7 +75,46 @@
             <td width="30%">
             Zoom: <input id="zoomText" size="4" maxlength="4" onchange="changedZoom()"></td>
             </tr>
-            </table>
+            </table> -->
+        
+        <div id="event" class="option">
+            Event:
+            <select id="pEvent" onchange="changedEvent(true);reset()">
+              <option value="single" selected>single</option>
+              <option value="marathon">marathon</option>
+              <option value="relay">relay</option>
+            </select>
+        </div>
+        
+        <div id="hidestats" class="option">
+            <input type="checkbox" id="hideStats" onchange="changedHideStats()"> Hide stats
+        </div>
+        
+        <div id="relaydata" class="option">Relay data: <input id="relayText" size="10" onchange="changedEvent(true)"></div>
+        
+        <div id="scramble" class="option">
+            <input type="button" onclick="pressSpacebar(false)" value="Scramble"/>
+        </div>
+
+        <div id="reset" class="option">
+            <input class="option" type="button" onclick="pressEscape()" value="Reset"/>
+        </div>
+
+        <div id="size" class="option">
+            Size: 
+            <input id="sizeText" size="3" maxlength="3" onchange="changedSize()">
+        </div>
+
+        <div id="zoom" class="option">
+            Zoom: 
+            <input id="zoomText" size="4" maxlength="4" onchange="changedZoom()">
+        </div>
+
+        <div id="loginform" class="option">
+            <input id="username" class="loginInput" type="username" name="username" placeholder="username" required>
+            <input id="password" class="loginInput" type="password" name="password" placeholder="password" required>
+            <input id="loginButton" type="button" onclick="login()" value="Login">
+        </div>
     </div>
     <br>
     <div height="1000" width="500" id="cube"><canvas id="c" /></div><br>

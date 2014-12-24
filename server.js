@@ -1,7 +1,8 @@
 var fs = require('fs'),
 	Hapi = require('hapi'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
-	users = require('./users.json');
+	users = require('./users.json'),
+	times = require('./times.json');
 
 // save upon SIGINT (ctrl + c)
 process.on('SIGINT', function() {
@@ -18,6 +19,7 @@ setInterval(function() {
 // save times
 function save() {
 	fs.writeFileSync('users.json', JSON.stringify(users));
+	fs.writeFileSync('times.json', JSON.stringify(times));
 }
 
 
@@ -52,10 +54,25 @@ server.route({
     }
 });
 
+server.route({path: "/login", method: "POST",
+	handler: function(request, reply) {
+		var username = request.payload.username,
+			password = request.payload.password;
+		r = addUser(username, password);
+		console.log(r ? "user: " + username + " created" :
+						"user: "  + username + " already exists");
+		if (r) {
+			reply(true);
+		} else {
+			reply(validate(username, password));
+		}
+	}
+});
+
 // Get all times for user
 server.route({path: "/users/{name}", method: "GET",
     handler: function(request, reply) {
-		reply(JSON.stringify(getUser(request.params.name)));
+		reply(JSON.stringify(getTimes(request.params.name)));
     }
 });
 
@@ -74,19 +91,35 @@ server.start(function() {
     console.log("Server started at ", server.info.uri);
 });
 
+function validate(username, password) {
+	return users[username] === password;
+}
+
+function addUser(username, password) {
+	if (!users[username]) {
+		users[username] = password;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 // get user. If user doesn't exist, make user
-function getUser(name) {
-	if (!users[name])
-		users[name] = {};
-	return users[name];
+function getTimes(username) {
+	if (users[username]) {
+		if (!times[username])
+			times[username] = {};
+		return times[username];
+	}
+	return;
 }
 
 // add time for size. If size doesn't exist, make it
 function addTimes(name, size, times) {
-	user = getUser(name);
-	if (!user[size]) {
-		user[size] = [times];
+	userTimes = getTimes(name);
+	if (!userTimes[size]) {
+		userTimes[size] = [times];
 	} else {
-		user[size] = user[size].concat(times);
+		userTimes[size] = userTimes[size].concat(times);
 	}
 }
