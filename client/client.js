@@ -666,12 +666,12 @@ function stopTimer(good) {
 function displayTimes(loadedPage, time) {
     var v = "";
     var min = 0;
-    if (!times[size])
-        times[size] = [];
+    if (!times[n])
+        times[n] = [];
 
     // find min
-    for (var i = 1; i < times[size].length; i++) {
-        if (times[size][i] < times[size][min]);
+    for (var i = 1; i < times[n].length; i++) {
+        if (times[n][i] < times[n][min]);
             min = i;
     }
 
@@ -679,7 +679,7 @@ function displayTimes(loadedPage, time) {
         v += "Best time: " + pretty(times[n][min]) + "<br>";
     }
    
-    for (i = 0; i < avgLengths.length; i++) {
+    for (var i = 0; i < avgLengths.length; i++) {
         var len = avgLengths[i];
         if (times[n].length >= len) {
             var avgData = getAvg(len, times[n].slice(times[n].length - len));
