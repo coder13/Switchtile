@@ -61,7 +61,6 @@ function login() {
 
             getTimes();
             loadAll();
-            changeN(n);
         }
     },'json');
 }
@@ -667,12 +666,12 @@ function stopTimer(good) {
 function displayTimes(loadedPage, time) {
     var v = "";
     var min = 0;
-    if (!times[n])
-        times[n] = [];
+    if (!times[size])
+        times[size] = [];
 
     // find min
-    for (var i = 1; i < times[n].length; i++) {
-        if (times[n][i] < times[n][min]);
+    for (var i = 1; i < times[size].length; i++) {
+        if (times[size][i] < times[size][min]);
             min = i;
     }
 
@@ -680,7 +679,7 @@ function displayTimes(loadedPage, time) {
         v += "Best time: " + pretty(times[n][min]) + "<br>";
     }
    
-    for (var i = 0; i < avgLengths.length; i++) {
+    for (i = 0; i < avgLengths.length; i++) {
         var len = avgLengths[i];
         if (times[n].length >= len) {
             var avgData = getAvg(len, times[n].slice(times[n].length - len));

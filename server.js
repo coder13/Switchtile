@@ -92,12 +92,13 @@ server.start(function() {
 });
 
 function validate(username, password) {
-	return users[username] === password;
+	return users[username].password === password;
 }
 
 function addUser(username, password) {
 	if (!users[username]) {
-		users[username] = password;
+		users[username].password = password;
+		users[username].best = {};
 		return true;
 	} else {
 		return false;
@@ -122,4 +123,55 @@ function addTimes(name, size, times) {
 	} else {
 		userTimes[size] = userTimes[size].concat(times);
 	}
+	userTimes[size] = userTimes[size].slice(userTimes[size].length-100);
+	calculateBest(name, size);
+}
+
+function calculateBest(name, size) {
+	user = users[name];
+	console.log(user);
+	if (!user.best)
+		user.best = {};
+
+	userTimes = getTimes(name);
+
+	var avgLengths = [5,12,100];
+
+	if (!user.best[size]) {
+		var min = 0;
+		for (var i = 1; i < userTimes[size].length; i++) {
+			if (userTimes[size][i] < userTimes[size][min]) {
+				min = i;
+			}
+		}
+		user.best.single = userTimes[size][min];
+
+		for (i = 0; i < avgLengths.length; i++) {
+			len = avgLengths[i];
+			if (userTimes[size].length >= len) {
+				for (j = 0; j <= userTimes[size].length - len; j++) {
+
+					var avg = getAvg(userTimes[size].slice(j, len+j), size);
+					if (j === 0 || avg < user.best[avgLengths]) {
+						user.best[len] = avg;
+					}
+				}
+			}
+		}
+	}
+	console.log(user.best);
+}
+
+function getAvg(list, size) {
+	var max = 0, min = 0;
+	var sum = list[0];
+	for (var i = 1; i < size; i++) {
+		if (list[i] > list[max])
+			max = i;
+		if (list[i] < list[min])
+			min = i;
+		sum += list[i];
+	}
+	sum = sum - list[min] - list[max];
+	return sum/(size-2);
 }
