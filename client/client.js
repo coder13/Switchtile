@@ -44,6 +44,8 @@ $(document).ready(function () {
         $("#loginform").hide();
     }
     init();
+    console.log(times);
+    displayTimes(true);
 });
 
 function login() {
@@ -52,11 +54,14 @@ function login() {
 
     $.post("login", {username: username, password: password}, function (data) {
         if (data) {
+            name = username;
             //login succesful
             $("#loginform").hide();
             window.localStorage.setItem('username', username);
-        } else {
 
+            getTimes();
+            loadAll();
+            changeN(n);
         }
     },'json');
 }
@@ -392,7 +397,7 @@ function changedSize() {
 function changeN(newN) {
     if(solving) {
         var agree = confirm("Are you SURE? This will stop the timer!");
-        if (!agree) 
+        if (!agree)
             return;
     }
     if (newN < 2)
@@ -403,7 +408,7 @@ function changeN(newN) {
     stopTimer(false);
     solving = false;
     n = newN;
-    if (pEvent == "relay") 
+    if (pEvent == "relay")
         nTotal = relayArr.length;
     loadAll();
     saveStuff();
@@ -448,7 +453,7 @@ function drawScreen() {
  
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
-            drawTile(squares[i][j], wgap + s * j / n, hgap + s * i / n, 
+            drawTile(squares[i][j], wgap + s * j / n, hgap + s * i / n,
                 wgap + s * (j+1) / n, hgap + s * (i+1) / n);
         }
     }
@@ -502,7 +507,7 @@ function drawTriangle(fillColor, x1, y1, x2, y2, x3, y3) {
 // do a move
 // direction = 0/1/2/3 (right/down/up/left), layer = layer from top/left (0 to n-1)
 function doMove(direction, layer, redraw) {
-    if (direction == 0) { // right
+    if (direction === 0) { // right
         var tmp = squares[layer][n-1];
         for (i=n-1; i>0; i--) {
             squares[layer][i] = squares[layer][i-1];
@@ -546,23 +551,23 @@ function solvedSquares() {
         sqr[i] = [];
         for (j=0; j<n; j++) {
             // determine the "color" of a square. imagine the numpad
-            if (i>j && i+j+1==n) { 
+            if (i>j && i+j+1==n) {
                 sqr[i][j] = 1;
-            } else if (i>j && i+j+1>n) { 
+            } else if (i>j && i+j+1>n) {
                 sqr[i][j] = 2;
-            } else if (i==j && i+j+1>n) { 
+            } else if (i==j && i+j+1>n) {
                 sqr[i][j] = 3;
-            } else if (i>j && i+j+1<n) { 
+            } else if (i>j && i+j+1<n) {
                 sqr[i][j] = 4;
-            } else if (i==j && i+j+1==n) { 
+            } else if (i==j && i+j+1==n) {
                 sqr[i][j] = 5;
-            } else if (i<j && i+j+1>n) { 
+            } else if (i<j && i+j+1>n) {
                 sqr[i][j] = 6;
-            } else if (i==j && i+j+1<n) { 
+            } else if (i==j && i+j+1<n) {
                 sqr[i][j] = 7;
-            } else if (i<j && i+j+1<n) { 
+            } else if (i<j && i+j+1<n) {
                 sqr[i][j] = 8;
-            } else if (i<j && i+j+1==n) { 
+            } else if (i<j && i+j+1==n) {
                 sqr[i][j] = 9;
             } else {
                 sqr[i][j] = -1;
@@ -574,8 +579,8 @@ function solvedSquares() {
 
 // check if our position is solved
 function isSolved() {
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             if (squares[i][j] != solved[i][j]) {
                 return false;
             }
@@ -626,7 +631,7 @@ function pretty(time) {
     time = Math.round(time);
     var mins = Math.floor(time/60000);
     var secs = trim((time - 60000*mins)/1000, 3);
-    if (mins == 0) {
+    if (mins === 0) {
         return secs;
     } else {
         return mins + (secs<10?":0":":") + secs;
@@ -664,10 +669,13 @@ function displayTimes(loadedPage, time) {
     var min = 0;
     if (!times[n])
         times[n] = [];
+
+    // find min
     for (var i = 1; i < times[n].length; i++) {
-        if (times[n][i] < times[n][min]) 
+        if (times[n][i] < times[n][min]);
             min = i;
     }
+
     if (times[n].length >= 1) {
         v += "Best time: " + pretty(times[n][min]) + "<br>";
     }
@@ -682,7 +690,7 @@ function displayTimes(loadedPage, time) {
                 // compute best average from scratch
                 for (j=0; j <= times[n].length-len; j++) {
                         var thisAvg = getAvg(len, times[n].slice(j, len+j));
-                    if (j==0 || thisAvg[1] < bestAverages[i][1]) {
+                    if (j === 0 || thisAvg[1] < bestAverages[i][1]) {
                         bestAverages[i] = thisAvg;
                     }
                 }
@@ -703,7 +711,7 @@ function displayTimes(loadedPage, time) {
                     v += pretty(bestAverages[i][1]) + "<br>";
                 }
             }
-            v += ""
+            v += "";
         }
     }
     document.getElementById('stats').innerHTML = v;
@@ -720,9 +728,9 @@ function getAvg(n, list) {
     var min = 0;
     var sum = list[0];
     for (var i=1; i<n; i++) {
-        if (list[i] > list[max]) 
+        if (list[i] > list[max])
             max = i;
-        if (list[i] < list[min]) 
+        if (list[i] < list[min])
             min = i;
         sum += list[i];
     }
@@ -754,8 +762,8 @@ function saveStuff() {
         window.localStorage.setItem("switchtile_pEvent",pEvent);
         if (name && name !== null && name !== 'null') {
             window.localStorage.setItem("username", name);
-            window.localStorage.setItem("switchtile_times", JSON.stringify(times));
         }
+        window.localStorage.setItem("switchtile_times", JSON.stringify(times));
         window.localStorage.setItem("switchtile_relayData",relayData);
         window.localStorage.setItem("switchtile_n",n);
         window.localStorage.setItem("switchtile_zoom",cwidth);
@@ -768,15 +776,7 @@ function loadStuff() {
         if (tmp !== null)
             pEvent = tmp;
 
-        // get times
-        if (name && name !== null && name !== 'null') {
-            $.getJSON("users/" + name, function(data) {
-                times = data;
-                displayTimes(true);
-            });
-        } else {
-            times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
-        }
+        getTimes();
 
         tmp = window.localStorage.getItem("switchtile_relayData");
         if (tmp !== null)
@@ -794,6 +794,18 @@ function loadStuff() {
     }
 }
 
+function getTimes() {
+    if (name && name !== null && name !== 'null') {
+        $.getJSON("users/" + name, function(data) {
+            times = data;
+            console.log(data);
+            displayTimes(true);
+        });
+    } else {
+        times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
+    }
+}
+
 // function $(str) {
 //     return document.getElementById(str);
 // }
@@ -803,7 +815,7 @@ function sqrt(x){
 }
 
 function trim(number, nDigits) {
-    if (!number || number == Number.POSITIVE_INFINITY || number == Number.NEGATIVE_INFINITY) 
+    if (!number || number == Number.POSITIVE_INFINITY || number == Number.NEGATIVE_INFINITY)
         number = 0;
     var power = Math.pow(10, nDigits);
     var trimmed = "" + Math.round(number * power);
