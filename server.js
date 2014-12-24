@@ -97,8 +97,10 @@ function validate(username, password) {
 
 function addUser(username, password) {
 	if (!users[username]) {
-		users[username].password = password;
-		users[username].best = {};
+		users[username] = {
+			password: password,
+			best: {}
+		};
 		return true;
 	} else {
 		return false;

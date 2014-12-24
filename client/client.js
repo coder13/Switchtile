@@ -665,17 +665,16 @@ function stopTimer(good) {
 
 function displayTimes(loadedPage, time) {
     var v = "";
-    var min = 0;
     if (!times[n])
         times[n] = [];
 
     // find min
-    for (var i = 1; i < times[n].length; i++) {
-        if (times[n][i] < times[n][min]);
-            min = i;
-    }
-
     if (times[n].length >= 1) {
+        var min = 0;
+        for (var i = 1; i < times[n].length; i++) {
+            if (times[n][i] < times[n][min])
+                min = i;
+        }
         v += "Best time: " + pretty(times[n][min]) + "<br>";
     }
    
