@@ -37,8 +37,10 @@ var browser = getBrowser(); // only want to call this once
 
 $(document).ready(function () {
     name = window.localStorage.getItem("name");
+    name = null;
     console.log(name);
-    if (!name) {
+
+    if (name !== null) {
         alertify.prompt("Please enter your name:<br>If you cancel, times will be saved locally instead.", "",
             function(evt, value ) {
                 alertify.success('Saving times as ' + value);
