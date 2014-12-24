@@ -1,9 +1,9 @@
-<!--
 
 //HTML5 Canvas stuff based off a demo by Dan Gries, rectangleworld.com.
 //The basic setup here, including the debugging code and window load listener, was copied from 'HTML5 Canvas' by Fulton & Fulton.
 
-window.addEventListener("load", init, false);
+// Modified version of qqwref's switchtile browser port
+
 document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 
 var name = "";
@@ -25,7 +25,8 @@ var dragStartX, dragStartY;
 var currentX, currentY;
 var context;
 var canvas;
-var cwidth=300, cheight=300; // size of canvas
+var cwidth = 300,
+    cheight= 300; // size of canvas
 
 var n = 3;
 var squares;
@@ -34,23 +35,36 @@ var colors = ["white","white","#FF6","white","#48C","white","#5F8","white","#222
 
 var browser = getBrowser(); // only want to call this once
 
-window.onkeydown=function(event){doKey(event)};
+$(document).ready(function () {
+    name = window.localStorage.getItem("name");
+    console.log(name);
+    if (!name) {
+        alertify.prompt("Please enter your name:<br>If you cancel, times will be saved locally instead.", "",
+            function(evt, value ) {
+                alertify.success('Saving times as ' + value);
+                window.localStorage.setItem('name', name);
+                name = value;
+                init();
+            },
+            function() {
+                alertify.success('Times will be stored localy');
+                init();
+            });
+    } else {
+        init();
+    }
+
+});
 
 /*******************************
  * CONTROLS AND MAIN FUNCTIONS *
  *******************************/
 
 function init() {
-    name = window.localStorage.getItem("name");
-    if (!name) {
-        name = prompt("Please enter your name", "");
-        if (name)
-            window.localStorage.setItem("name", name);
-    }
-    alertify.alert('Ready!');
+    window.onkeydown = function(event){doKey(event);};
 
     loadStuff();
-    document.bgColor = "black"
+    document.bgColor = "black";
     document.fgColor = "white";
     changedEvent(false);
     changedHideStats();
@@ -92,7 +106,7 @@ function loadAll() {
 function mouseDownListener(evt) {
     //getting mouse position correctly, being mindful of resizing that may have occurred in the browser:
     var bRect = canvas.getBoundingClientRect();
-    if (evt.changedTouches == null) {
+    if (evt.changedTouches === null) {
         dragStartX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
         dragStartY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
     } else {
