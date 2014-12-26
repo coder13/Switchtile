@@ -341,7 +341,7 @@ function finishSolve() {
 }
 
 function reset() {
-    if (pEvent=="relay") {
+    if (pEvent == "relay") {
         n = relayArr[relayArr.length - 1];
     }
     showProgress();

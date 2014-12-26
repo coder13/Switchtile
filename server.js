@@ -86,6 +86,13 @@ server.route({path: "/users/{name}", method: "POST",
 	}
 });
 
+// server.route({path: "/leaderboard", method: "GET",
+// 	handler: function(request, reply) {
+// 		genTop(3, 'single');
+// 		reply.view('leaderboard');
+// 	}
+// });
+
 // start server
 server.start(function() {
     console.log("Server started at ", server.info.uri);
@@ -179,4 +186,35 @@ function getAvg(list, size) {
 	}
 	sum = sum - list[min] - list[max];
 	return sum/(list.length-2);
+}
+
+function genTop(size, avg) {
+	list = [];
+	if (avg == 'single') {
+		for (var user in users) {
+			if (!users[user].best)
+				continue;
+			if (!users[user].best[size])
+				continue;
+
+			console.log(user);
+
+			if (users[user].best[size].single) {
+				list.push({name: user, time: users[user].best[size].single, times: []});
+			}
+		}
+	} else {
+
+	}
+	list = list.sort(compare);
+	console.log(list);
+	return list;
+}
+
+function compare(a,b) {
+  if (a.time < b.time)
+     return -1;
+  if (a.time > b.time)
+    return 1;
+  return 0;
 }
