@@ -7,8 +7,16 @@ var fs = require('fs'),
 	users = {}, times = {};
 
 var logger = new (winston.Logger)({
-	transports: [new (winston.transports.Console)({
-			colorize: true
+	transports: [
+		new (winston.transports.Console)({ // console output
+			colorize: true,
+			timestamp: true
+		}),
+		new (winston.transports.File)({ // file output
+			filename: 'switchtile.log',
+			timestamp: true,
+			json: false,
+			prettyPrint: true
 		})
 	],
 	colors: {
