@@ -1,3 +1,4 @@
+
 var fs = require('fs'),
 	Hapi = require('hapi'),
 	handlebars = require('handlebars'),
@@ -26,6 +27,13 @@ var logger = new (winston.Logger)({
 	}
 });
 
+var config = {autosave: 5*60};
+try {
+	config = require('./config.json');
+} catch (e) {
+	logger.warn('config.json doesn\'t exist.');
+}
+
 try {
 	users = require('./users.json');
 } catch (e) {
@@ -53,7 +61,7 @@ setInterval(function() {
 		save();
 		timeout++;
 	}
-}, 6 * 60 * 1000);
+}, config.autosave * 1000);
 
 // save times
 function save() {
@@ -105,6 +113,11 @@ server.route({path: "/login", method: "POST",
 	handler: function(request, reply) {
 		var username = request.payload.username,
 			password = request.payload.password;
+		if (!username || username === null || username == 'null' ||
+			!password || password === null || password == 'null' || password.length < 6) {
+			reply(false);
+			return;
+		}
 		var r = addUser(username, password);
 		
 		if (r) {

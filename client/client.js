@@ -55,6 +55,7 @@ $(document).ready(function () {
             init();
         },'json');
     } else {
+        $("#loginform").show();
         init();
     }
 
