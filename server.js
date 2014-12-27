@@ -21,13 +21,13 @@ var logger = new (winston.Logger)({
 try {
 	users = require('./users.json');
 } catch (e) {
-	logger.info('users.json doesn\'t exist.');
+	logger.warn('users.json doesn\'t exist.');
 }
 
 try {
 	times = require('./times.json');
 } catch (e) {
-	logger.info('times.json doesn\'t exist');
+	logger.warn('times.json doesn\'t exist');
 }
 
 
@@ -97,13 +97,17 @@ server.route({path: "/login", method: "POST",
 	handler: function(request, reply) {
 		var username = request.payload.username,
 			password = request.payload.password;
-		r = addUser(username, password);
-		logger.log(r ? "user: " + username + " created" :
-						"user: "  + username + " already exists");
+		var r = addUser(username, password);
+		
 		if (r) {
+			logger.info('Creating user: %s', username);
 			reply(true);
 		} else {
-			reply(validate(username, password));
+			var v = validate(username, password);
+			if (v)
+				logger.info('User: %s logging in', username);
+			reply(v);
+			
 		}
 	}
 });
