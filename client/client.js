@@ -43,7 +43,7 @@ $(document).ready(function () {
     if (username && username !== null && username !== 'null' &&
         password && password !== null && password !== 'null') {
         console.log(username, password);
-        $("#loginform").hide();
+        $("#loginform" ).hide();
         $.post("login", {username: username, password: password}, function (data) {
             if (!data)
                 $("#loginform").show();
@@ -665,8 +665,8 @@ function stopTimer(good) {
             // figure out averages and display
             displayTimes(false, time);
 
-            if (name && name !== null && name !== 'null')
-                $.post("users/" + name, {size: n, time: time, user: {name: username, password: password}}, 'json');
+            if (username && username !== null && username !== 'null')
+                $.post("users/" + username, {size: n, time: time, user: {name: username, password: password}}, 'json');
         }
     }
 }
@@ -675,7 +675,7 @@ function displayTimes(loadedPage, time) {
     var v = "";
     if (!times[n])
         times[n] = [];
-
+`
     // find min
     if (times[n].length >= 1) {
         var min = 0;
@@ -766,8 +766,8 @@ function saveStuff() {
     if (window.localStorage !== undefined) {
 
         window.localStorage.setItem("switchtile_pEvent",pEvent);
-        if (name && name !== null && name !== 'null') {
-            window.localStorage.setItem("username", name);
+        if (username && username !== null && username !== 'null') {
+            window.localStorage.setItem("username", username);
         }
         window.localStorage.setItem("switchtile_times", JSON.stringify(times));
         window.localStorage.setItem("switchtile_relayData",relayData);
@@ -801,8 +801,8 @@ function loadStuff() {
 }
 
 function getTimes() {
-    if (name && name !== null && name !== 'null') {
-        $.getJSON("users/" + name, function(data) {
+    if (username && username !== null && username !== 'null') {
+        $.getJSON("users/" + username, function(data) {
             times = data;
             console.log(data);
             displayTimes(true);

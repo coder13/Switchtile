@@ -53,6 +53,9 @@ server.views({
 // Serve index.html
 server.route({ method: 'GET', path: '/', handler: {view: 'index'}});
 
+server.route({ method: 'GET', path: '/credit', handler: {view: 'credit'}});
+server.route({ method: 'GET', path: '/howto', handler: {view: 'howto'}});
+
 // Serve everything else
 server.route({
     method: 'GET',
