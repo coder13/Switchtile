@@ -50,6 +50,8 @@ $(document).ready(function () {
             
             init();
         },'json');
+    } else {
+        init();
     }
 
 });
