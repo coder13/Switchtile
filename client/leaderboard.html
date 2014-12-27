@@ -1,0 +1,260 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style>
+
+body {
+    background-color: black;
+    color: white;
+    margin: .5%;
+}
+
+th {
+    /*border: 1px solid red;*/
+}
+
+#sizes p {
+    display: inline-block;
+    background-color:rgba(64,64,64,0.25);
+    padding: 0px;
+    margin: 0px;
+    width: 4%;
+    height: 24px;
+    text-align: center
+}
+
+#sizes p:hover {
+    background-color:rgba(64,64,64,0.5);
+}
+
+#size {
+    float: right;
+}
+
+#avgs {
+    border: none;
+}
+
+.avg {
+    width: calc(25% - 2px);
+    height: 10%;
+    padding: 0px;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    background-color: rgba(64,64,64,0.25);
+    border: 1px solid rgba(0, 0, 192, 1);
+}
+
+.avg:hover {
+    background-color:rgba(64,64,64,0.5);
+}
+
+.selected {
+    background-color: rgba(64, 64, 64, 0.5);
+}
+
+table {
+    width: 100%;
+    text-align: left;
+    
+    border-collapse:collapse;
+    border: 1px solid rgba(0, 0, 192, 1);
+}
+
+.odd {
+    background-color: #ddd;
+}
+
+.even {
+    background-color: #fff;
+}
+
+tr td {
+    color: black;
+    padding: 0px;
+    margin: 0px;
+}
+
+td {
+    padding: 0px;
+}
+
+</style>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script> 
+
+$(document).ready(function () {
+    $('.avg').click(function(evt) {
+        $('.selected').removeClass('selected');
+        $(evt.target).addClass('selected');
+        console.log(evt);
+        switch (evt.target.id) {
+            case "singleAvg":
+                $("#single").show();
+                $("#avg5").hide();
+                $("#avg12").hide();
+                $("#avg100").hide();
+                break;
+            case "avg5Avg":
+                $("#single").hide();
+                $("#avg5").show();
+                $("#avg12").hide();
+                $("#avg100").hide();
+                break;
+            case "avg12Avg":
+                $("#single").hide();
+                $("#avg5").hide();
+                $("#avg12").show();
+                $("#avg100").hide();
+                break;
+            case "avg100Avg":
+                $("#single").hide();
+                $("#avg5").hide();
+                $("#avg12").hide();
+                $("#avg100").show();
+                break;
+            default: 
+                console.log(evt.target);
+                break;
+        }
+    });
+
+    $("#sizes p").click(function (evt) {
+        window.location = '/leaderboard?size=' + evt.target.innerHTML;
+    });
+
+    $("#sizeText").change(function (evt) {
+        window.location = '/leaderboard?size=' + evt.target.value;
+    });
+
+    $('#singleAvg').addClass('selected');
+    $("#avg5").hide();
+    $("#avg12").hide();
+    $("#avg100").hide();
+});
+</script>
+
+</head>
+
+<body>
+
+    <div id="sizes">
+        <p>2</p><!--
+     --><p>3</p><!--
+     --><p>4</p><!--
+     --><p>5</p><!--
+     --><p>6</p><!--
+     --><p>7</p><!--
+     --><p>8</p><!--
+     --><p>9</p><!--
+     --><p>10</p><!--
+     --><p>11</p><!--
+     --><p>12</p><!--
+     --><p>13</p><!--
+     --><p>14</p><!--
+     --><p>15</p><!--
+     --><p>16</p><!--
+     --><p>17</p><!--
+     --><p>18</p><!--
+     --><p>19</p><!--
+     --><p>20</p><!--
+     --><div id="size"> <input id="sizeText" size="3" maxlength="3"></div>
+    </di-->
+
+    <div id="avgs">
+        <div id="singleAvg" class="avg">Single</div><!--
+     --><div id="avg5Avg" class="avg">Avg5</div><!--
+     --><div id="avg12Avg" class="avg">Avg12</div><!--
+     --><div id="avg100Avg" class="avg">Avg100</div>
+    </div>
+    
+    
+    <div id="single" class="average">
+
+    <table>
+        <tr>
+            <th id="thPlace" width="40px">#</th>
+            <th id="thName" width="15%">Name</th>
+            <th id="thAverage" width="200px">Single</th>
+            <th></th>
+        </tr>
+        {{#each single}}
+        <tr class="{{highlight @index}}">
+            <td>{{inc @index}}</td>
+            <td>{{name}}</td>
+            <td>{{time}}</td>
+            <td> </td>
+        </tr>
+        {{/each}}
+    </table>
+
+    </div>
+
+
+    <div id="avg5" class="average">
+
+    <table>
+        <tr>
+            <th id="thPlace" width="40px">#</th>
+            <th id="thName" width="15%">Name</th>
+            <th id="thAverage" width="200px">Average</th>
+            <th id="thTimes">Times</th>
+        </tr>
+        {{#each avg5}}
+        <tr class="{{highlight @index}}">
+            <td>{{inc @index}}</td>
+            <td>{{name}}</td>
+            <td>{{time}}</td>
+            <td>{{times}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
+    </div>
+
+    <div id="avg12" class="average">
+
+    <table>
+        <tr>
+            <th id="thPlace" width="40px">#</th>
+            <th id="thName" width="15%">Name</th>
+            <th id="thAverage" width="200px">Average</th>
+            <th id="thTimes">Times</th>
+        </tr>
+        {{#each avg12}}
+        <tr class="{{highlight @index}}">
+            <td>{{inc @index}}</td>
+            <td>{{name}}</td>
+            <td>{{time}}</td>
+            <td>{{times}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
+    </div>
+
+    <div id="avg100" class="average">
+
+    <table>
+        <tr>
+            <th id="thPlace" width="40px">#</th>
+            <th id="thName" width="15%">Name</th>
+            <th id="thAverage" width="200px">Average</th>
+            <th id="thTimes">Times</th>
+        </tr>
+        {{#each avg100}}
+        <tr class="{{highlight @index}}">
+            <td>{{inc @index}}</td>
+            <td>{{name}}</td>
+            <td>{{time}}</td>
+            <td>{{times}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
+    </div>
+
+</body>
+</html>

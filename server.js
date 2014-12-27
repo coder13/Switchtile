@@ -1,5 +1,6 @@
 var fs = require('fs'),
 	Hapi = require('hapi'),
+	handlebars = require('handlebars'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	users = require('./users.json'),
 	times = require('./times.json');
@@ -22,11 +23,18 @@ function save() {
 	fs.writeFileSync('times.json', JSON.stringify(times));
 }
 
-
 var server = new Hapi.Server();
 server.connection({
 	host: '0.0.0.0',
 	port: serverPort,
+});
+
+handlebars.registerHelper('inc', function(value, options) {
+    return parseInt(value) + 1;
+});
+
+handlebars.registerHelper('highlight', function(value, options) {
+    return value % 2 ? 'even' : 'odd';
 });
 
 // setup for serving html pages
@@ -39,9 +47,7 @@ server.views({
 // routes
 
 // Serve index.html
-server.route({ method: 'GET', path: '/', handler: function(req, reply) {
-    reply.view('index');
-}});
+server.route({ method: 'GET', path: '/', handler: {view: 'index'}});
 
 // Serve everything else
 server.route({
@@ -86,16 +92,22 @@ server.route({path: "/users/{name}", method: "POST",
 	}
 });
 
-// server.route({path: "/leaderboard", method: "GET",
-// 	handler: function(request, reply) {
-// 		genTop(3, 'single');
-// 		reply.view('leaderboard');
-// 	}
-// });
+server.route({path: "/leaderboard", method: "GET",
+	handler: function(request, reply) {
+		context = {
+			single: genTop(request.query.size, 'single'),
+			avg5: genTop(request.query.size, 5),
+			avg12: genTop(request.query.size, 12),
+			avg100: genTop(request.query.size, 100),
+		};
+		reply.view('leaderboard', context);
+	}
+});
 
 // start server
 server.start(function() {
-    console.log("Server started at ", server.info.uri);
+	console.log("Server started at ", server.info.uri);
+
 });
 
 function validate(username, password) {
@@ -174,6 +186,29 @@ function calculateBest(name, size) {
 	
 }
 
+function trim(number, nDigits) {
+	if (!number || number == Number.POSITIVE_INFINITY || number == Number.NEGATIVE_INFINITY)
+		number = 0;
+	var power = Math.pow(10, nDigits);
+	var trimmed = "" + Math.round(number * power);
+	while (trimmed.length < nDigits + 1) {
+		trimmed = "0" + trimmed;
+	}
+	var len = trimmed.length;
+	return trimmed.substr(0,len - nDigits) + "." + trimmed.substr(len - nDigits, nDigits);
+}
+
+function pretty(time) {
+	time = Math.round(time);
+	var mins = Math.floor(time/60000);
+	var secs = trim((time - 60000*mins)/1000, 3);
+	if (mins === 0) {
+		return secs;
+	} else {
+		return mins + (secs<10?":0":":") + secs;
+	}
+}
+
 function getAvg(list, size) {
 	var max = 0, min = 0;
 	var sum = list[0];
@@ -185,36 +220,30 @@ function getAvg(list, size) {
 		sum += list[i];
 	}
 	sum = sum - list[min] - list[max];
+	// console.log(sum/(list.length-2), round(sum/(list.length-2)*1000)/1000);
 	return sum/(list.length-2);
 }
 
 function genTop(size, avg) {
 	list = [];
-	if (avg == 'single') {
-		for (var user in users) {
-			if (!users[user].best)
-				continue;
-			if (!users[user].best[size])
-				continue;
+	for (var user in users) {
+		if (!users[user].best)
+			continue;
+		if (!users[user].best[size])
+			continue;
 
-			console.log(user);
-
-			if (users[user].best[size].single) {
-				list.push({name: user, time: users[user].best[size].single, times: []});
-			}
+		if (users[user].best[size][avg]) {
+			list.push({name: user, time: pretty(users[user].best[size][avg]), times: []});
 		}
-	} else {
-
 	}
 	list = list.sort(compare);
-	console.log(list);
 	return list;
 }
 
 function compare(a,b) {
-  if (a.time < b.time)
-     return -1;
-  if (a.time > b.time)
-    return 1;
-  return 0;
+	if (a.time < b.time)
+		return -1;
+	if (a.time > b.time)
+		return 1;
+	return 0;
 }
