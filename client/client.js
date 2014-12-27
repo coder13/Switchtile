@@ -831,14 +831,6 @@ function getTimes() {
     }
 }
 
-// function $(str) {
-//     return document.getElementById(str);
-// }
-
-function sqrt(x){
-    return Math.sqrt(x);
-}
-
 function trim(number, nDigits) {
     if (!number || number == Number.POSITIVE_INFINITY || number == Number.NEGATIVE_INFINITY)
         number = 0;
