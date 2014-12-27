@@ -138,7 +138,7 @@ $(document).ready(function () {
     }
 
     $("#sizes p").click(function (evt) {
-        window.location = '/leaderboard?size=' + evt.target.innerHTML;
+        window.location = evt.target.id ? '/leaderboard?size=' + evt.target.innerHTML : '/';
     });
 
     $("#sizeText").change(function (evt) {
@@ -157,6 +157,7 @@ $(document).ready(function () {
 <body>
 
     <div id="sizes">
+        <p href="/">back</p>
         <p id="2">2</p><!--
      --><p id="3">3</p><!--
      --><p id="4">4</p><!--
