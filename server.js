@@ -3,7 +3,8 @@ var fs = require('fs'),
 	handlebars = require('handlebars'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	users = require('./users.json'),
-	times = require('./times.json');
+	times = require('./times.json'),
+	timeout = 0;
 
 // save upon SIGINT (ctrl + c)
 process.on('SIGINT', function() {
@@ -13,8 +14,11 @@ process.on('SIGINT', function() {
 
 // autosave
 setInterval(function() {
-  console.log("autosaving....");
-  save();
+	if (timeout === 0) {
+		console.log("autosaving....");
+		save();
+		timeout++;
+	}
 }, 6 * 60 * 1000);
 
 // save times
@@ -87,8 +91,13 @@ server.route({path: "/users/{name}", method: "POST",
 	handler: function(request, reply) {
 		var data = request.payload;
 		data.time = +data.time;
-		addTimes(request.params.name, data.size, data.time);
-		reply(data);
+		if (users[data.user.name].password == data.user.password) {
+			addTimes(request.params.name, data.size, data.time);
+			timeout = 0;
+			reply(true);
+		} else {
+			reply(false);
+		}
 	}
 });
 
@@ -241,9 +250,9 @@ function genTop(size, avg) {
 }
 
 function compare(a,b) {
-	if (a.time < b.time)
+	if (+a.time < +b.time)
 		return -1;
-	if (a.time > b.time)
+	if (+a.time > +b.time)
 		return 1;
 	return 0;
 }

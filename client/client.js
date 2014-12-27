@@ -6,7 +6,7 @@
 
 document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 
-var name = null;
+var username = null, password = null;
 var pEvent = "single";
 var cnt = 0; // move count
 var times = {};
@@ -37,27 +37,33 @@ var browser = getBrowser(); // only want to call this once
 
 $(document).ready(function () {
     $('#loginButton').prop('disabled', true);
-    name = window.localStorage.getItem('username');
-    console.log(name, typeof(name));
+    username = window.localStorage.getItem('username');
+    password = window.localStorage.getItem('password');
 
-    if (name && name !== null && name !== 'null') {
+    if (username && username !== null && username !== 'null' &&
+        password && password !== null && password !== 'null') {
+        console.log(username, password);
         $("#loginform").hide();
+        $.post("login", {username: username, password: password}, function (data) {
+            if (!data)
+                $("#loginform").show();
+            
+            init();
+        },'json');
     }
-    init();
-    console.log(times);
-    displayTimes(true);
+
 });
 
 function login() {
-    var username = $("#username")[0].value,
-        password = $("#password")[0].value;
+    username = $("#username")[0].value;
+    password = $("#password")[0].value;
 
     $.post("login", {username: username, password: password}, function (data) {
         if (data) {
-            name = username;
             //login succesful
             $("#loginform").hide();
             window.localStorage.setItem('username', username);
+            window.localStorage.setItem('password', password);
 
             getTimes();
             loadAll();
@@ -658,7 +664,7 @@ function stopTimer(good) {
             displayTimes(false, time);
 
             if (name && name !== null && name !== 'null')
-                $.post("users/" + name, {size: n, time: time}, 'json');
+                $.post("users/" + name, {size: n, time: time, user: {name: username, password: password}}, 'json');
         }
     }
 }
