@@ -37,6 +37,8 @@ var browser = getBrowser(); // only want to call this once
 
 $(document).ready(function () {
     $('#loginButton').prop('disabled', true);
+    $("#loginform").hide();
+    $("#logout" ).hide();
     username = window.localStorage.getItem('username');
     password = window.localStorage.getItem('password');
 
@@ -44,10 +46,12 @@ $(document).ready(function () {
         password && password !== null && password !== 'null') {
         console.log(username, password);
         $("#loginform" ).hide();
+        $("#logout").show();
         $.post("login", {username: username, password: password}, function (data) {
-            if (!data)
+            if (!data){
                 $("#loginform").show();
-            
+                $("#logout").hide();
+            }
             init();
         },'json');
     } else {
@@ -64,13 +68,27 @@ function login() {
         if (data) {
             //login succesful
             $("#loginform").hide();
+            $("#logout").show();
             window.localStorage.setItem('username', username);
             window.localStorage.setItem('password', password);
 
             getTimes();
             loadAll();
+
+            $("#username")[0].value = "";
+            $("#password")[0].value = "";
         }
     },'json');
+}
+
+function logout() {
+    window.localStorage.removeItem('username');
+    window.localStorage.removeItem('password');
+    username = null;
+    password = null;
+
+    $("#loginform").show();
+    $("#logout").hide();
 }
 
 /*******************************
