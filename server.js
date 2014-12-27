@@ -1,29 +1,47 @@
 var fs = require('fs'),
 	Hapi = require('hapi'),
 	handlebars = require('handlebars'),
+	winston = require('winston'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
-	timeout = 0;
+	timeout = 0,
+	users = {}, times = {};
 
-var users = {};
+var logger = new (winston.Logger)({
+	transports: [new (winston.transports.Console)({
+			colorize: true
+		})
+	],
+	colors: {
+		info: 'blue',
+		warn: 'yellow',
+		error: 'red'
+	}
+});
+
 try {
 	users = require('./users.json');
-} catch (e) {}
-var times = {};
+} catch (e) {
+	logger.info('users.json doesn\'t exist.');
+}
+
 try {
 	times = require('./times.json');
-} catch (e) {}
+} catch (e) {
+	logger.info('times.json doesn\'t exist');
+}
 
 
 // save upon SIGINT (ctrl + c)
 process.on('SIGINT', function() {
 	save();
+	logger.info('shuting down. Saving and safely stoping....');
 	process.kill(0);
 });
 
 // autosave
 setInterval(function() {
 	if (timeout === 0) {
-		console.log("autosaving....");
+		logger.info("autosaving....");
 		save();
 		timeout++;
 	}
@@ -80,7 +98,7 @@ server.route({path: "/login", method: "POST",
 		var username = request.payload.username,
 			password = request.payload.password;
 		r = addUser(username, password);
-		console.log(r ? "user: " + username + " created" :
+		logger.log(r ? "user: " + username + " created" :
 						"user: "  + username + " already exists");
 		if (r) {
 			reply(true);
@@ -126,7 +144,7 @@ server.route({path: "/leaderboard", method: "GET",
 
 // start server
 server.start(function() {
-	console.log("Server started at ", server.info.uri);
+	logger.info("Server started at ", server.info.uri);
 
 });
 
@@ -240,7 +258,6 @@ function getAvg(list, size) {
 		sum += list[i];
 	}
 	sum = sum - list[min] - list[max];
-	// console.log(sum/(list.length-2), round(sum/(list.length-2)*1000)/1000);
 	return sum/(list.length-2);
 }
 
