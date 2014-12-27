@@ -2,9 +2,17 @@ var fs = require('fs'),
 	Hapi = require('hapi'),
 	handlebars = require('handlebars'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
-	users = require('./users.json'),
-	times = require('./times.json'),
 	timeout = 0;
+
+var users = {};
+try {
+	users = require('./users.json');
+} catch (e) {}
+var times = {};
+try {
+	times = require('./times.json');
+} catch (e) {}
+
 
 // save upon SIGINT (ctrl + c)
 process.on('SIGINT', function() {

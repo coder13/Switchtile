@@ -2,8 +2,13 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <style>
-    td {
-        padding:0;
+    
+    #links {
+        height: 24px;
+    }
+
+    #links a {
+        padding-right: 120px;
     }
 
     .no {
@@ -26,6 +31,7 @@
     #options {
         height: 24px;
         position: relative;
+        border:1px solid blue
     }
 
     #hideStats {
@@ -60,7 +66,14 @@
 
 </head>
 <body text="white" bgColor="black">
-    <div id="options" style="border:1px solid blue">
+    <div id="links">
+
+    <a onclick="window.location='/leaderboard?size?=' + n">leaderboard</a>
+    <a href="/credit">Credit</a>
+    <a href="/howto">How to play</a>
+    
+    </div>
+    <div id="options">
         <div id="event" class="option">
             Event:
             <select id="pEvent" onchange="changedEvent(true);reset()">

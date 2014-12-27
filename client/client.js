@@ -675,7 +675,7 @@ function displayTimes(loadedPage, time) {
     var v = "";
     if (!times[n])
         times[n] = [];
-`
+
     // find min
     if (times[n].length >= 1) {
         var min = 0;
