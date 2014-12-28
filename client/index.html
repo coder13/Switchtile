@@ -1,37 +1,59 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="css/dark.css"/>
 <style>
     #links {
-        height: 24px;
+        height: auto;
+        background-color: #aaaaaa;
+        border: 1px solid black;
     }
 
     #links a {
-        padding-right: 20%;
+        padding-left: 8px;
+        padding-right: 8px;
+        vertical-align: middle;
+        text-decoration: none;
+        color: black;
     }
 
     .no {
-        display:none;
+        display: none;
     }
 
     div {
-        border-style:solid;
-        border-width:0;
+        border-style: solid;
+        border-width: 0;
     }
 
     .option {
         display: inline-block;
         padding-left: 5px;
-        padding-right: 15%;
+        padding-right: 3%;
         padding-top: 2px;
         padding-bottom: 2px;
     }
 
     #options {
-        height: 24px;
+        height: auto;
         position: relative;
-        border:1px solid blue
+        border: 1px solid black;
+        background-color: #aaaaaa;
+        color: black;
+    }
+
+    select {
+        -webkit-border-radius: 1px;
+        -webkit-appearance: none;
+        width:auto;
+        border: 0;
+        outline:0;
+    }
+
+    option {
+        text-align: center;
     }
 
     #hideStats {
@@ -44,10 +66,6 @@
 
     #size {
         padding: 2px
-    }
-
-    #zoom {
-        padding: 0px;
     }
 
     #loginform {
@@ -68,10 +86,8 @@
 
 </style>
 <link id="stylesheet" rel="stylesheet" type="text/css" href="css/dark.css"/>
-<!-- <link rel="stylesheet" href="alertifyjs/css/alertify.min.css"/> -->
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<!-- <script src="alertifyjs/alertify.min.js"></script> -->
 <script src="global.js"></script>
 <script src="client.js"> </script>
 
@@ -79,10 +95,9 @@
 <body>
     <div id="links">
 
-    <a href="#" onclick="window.location='/leaderboard?size=' + n">leaderboard</a>
+    <a href="#" onclick="window.location='/leaderboard?size=' + n">Leaderboard</a>
     <a href="/credit">Credit</a>
     <a href="/howto">How to play</a>
-
 
     </div>
     <div id="options">
@@ -93,6 +108,14 @@
               <option value="marathon">marathon</option>
               <option value="relay">relay</option>
             </select>
+        </div>
+
+        <div id="size" class="option">
+            Size: <input id="sizeText" size="3" maxlength="3" onchange="changedSize()">
+        </div>
+
+        <div id="zoom" class="option">
+            Zoom: <input id="zoomText" size="4" maxlength="4" onchange="changedZoom()">
         </div>
         
         <div id="hidestats" class="option">
@@ -109,14 +132,6 @@
             <input class="option" type="button" onclick="pressEscape()" value="Reset"/>
         </div>
 
-        <div id="size" class="option">
-            Size: <input id="sizeText" size="3" maxlength="3" onchange="changedSize()">
-        </div>
-
-        <div id="zoom" class="option">
-            Zoom: <input id="zoomText" size="4" maxlength="4" onchange="changedZoom()">
-        </div>
-
         <div id="loginform" class="option">
             <input id="username" class="loginInput" type="username" name="username" placeholder="username" required>
             <input id="password" class="loginInput" type="password" name="password" placeholder="password" required>
@@ -128,11 +143,13 @@
         </div>
     </div>
     <br>
-    <div height="1000" width="500" id="cube"><canvas id="c" /></div><br>
-    <span id="time" style="font-size:200%"></span> &nbsp; 
-    <span id="progress"></span><br>
-    <span id="stats"></span><br>
-    <span id="moves"></span>
+    <div style="margin:10px;" height="1000" width="500" id="cube"><canvas id="c" /></div><br>
+    <div style="margin:15px;">
+        <span id="time" style="font-size:200%"></span> &nbsp; 
+        <span id="progress"></span><br>
+        <span id="stats"></span><br>
+        <span id="moves"></span>
+    </div>
 
     <footer style="position: absolute;bottom: 0; width: 98%;">
     <div style="float:right">

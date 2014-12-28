@@ -38,7 +38,6 @@ var browser = getBrowser(); // only want to call this once
 loadCSS();
 
 $(document).ready(function () {
-
     $('#loginButton').prop('disabled', true);
     $('#loginform').hide();
     $('#logout').hide();

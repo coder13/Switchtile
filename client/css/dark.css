@@ -10,31 +10,31 @@ body {
 
 /* index.html */
 .options {
-	background-color: #7f7f7f
+	background-color: #aaaaaa
 }
 
 /* leaderboard.html */
 #sizes p {
-    background-color: #7F7F7F;
-    background-color: rgba(64, 64, 64, 0.25);
+    background-color: #aaaaaa;
+    background-color: rgba(192, 192, 192, 0.25);
 }
 
-#sizes p:hover {
-	background-color: #7F7F7F;
-    background-color:rgba(64, 64, 64, 0.5);
+.s:hover {
+	background-color: #aaaaaa;
+    background-color:rgba(192, 192, 192, 0.5);
 }
 
 .avg {
-	background-color: #7F7F7F;
-    background-color: rgba(64, 64, 64, 0.25);
+	background-color: #aaaaaa;
+    background-color: rgba(192, 192, 192, 0.25);
 }
 
 .avg:hover {
-    background-color: #7F7F7F;
-	background-color: rgba(64, 64, 64, 0.5);
+    background-color: #aaaaaa;
+	background-color: rgba(192, 192, 192, 0.5);
 }
 
 .selected {
-	background-color: #7F7F7F;
-    background-color: rgba(64, 64, 64, 0.5);
+	background-color: #aaaaaa;
+    background-color: rgba(192, 192, 192, 0.5);
 }

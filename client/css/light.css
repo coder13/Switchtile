@@ -5,7 +5,7 @@ body {
 }
 
 .border {
-	border: 1px solid blue;
+	border: 1px solid black;
 }
 
 /* leaderboard.html */
@@ -14,7 +14,7 @@ body {
     background-color: rgba(224, 224, 224, 0.5);
 }
 
-#sizes p:hover {
+.s:hover {
 	background-color: #EFEFEF;
     background-color:rgba(224, 224, 224, 0.75);
 }
