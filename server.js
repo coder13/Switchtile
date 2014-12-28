@@ -144,12 +144,16 @@ server.route({path: "/users/{name}", method: "POST",
 	handler: function(request, reply) {
 		var data = request.payload;
 		data.time = +data.time;
-		if (users[data.user.name].password == data.user.password) {
-			addTimes(request.params.name, data.size, data.time);
-			timeout = 0;
-			reply(true);
-		} else {
+		if (!data.hasOwnProperty('username') || !data.hasOwnProperty('username')) {
 			reply(false);
+		} else {
+			if (validate(data.user.name, data.user.password)) {
+				addTimes(request.params.name, data.size, data.time);
+				timeout = 0;
+				reply(true);
+			} else {
+				reply(false);
+			}
 		}
 	}
 });

@@ -1,8 +1,8 @@
-<html>
+<html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link id="stylesheet" rel="stylesheet" type="text/css" href="css/dark.css"/>
 <style>
 
@@ -16,14 +16,18 @@ li.s {
 
 nav#sizes {
     background-color: rgba(192, 192, 192, 0.25);
+    border: 1px solid black;
 }
 
 #size {
     height: 28px;
+    color: black;
+    padding: auto;
 }
 
 #avgs {
     border: none;
+    margin: auto;
 }
 
 .avg {
@@ -31,6 +35,7 @@ nav#sizes {
     height: 10%;
     padding: 0px;
     text-align: center;
+    vertical-align: middle;
     position: relative;
     display: inline-block;
     border: 1px solid black;
@@ -89,6 +94,8 @@ loadCSS();
 })(jQuery);
 
 $(document).ready(function () {
+    $('#sizeText').val($.QueryString['size']);
+
     $('.avg').click(function(evt) {
         $('div.selected').removeClass('selected');
         $(evt.target).addClass('selected');
@@ -124,18 +131,18 @@ $(document).ready(function () {
         $('#' + $.QueryString['size']).addClass('selected');
     }
 
-    $("li.s").click(function (evt) {
+    $('li.s').click(function (evt) {
         window.location = evt.target.id ? '/leaderboard?size=' + evt.target.innerHTML : '/';
     });
 
-    $("#sizeText").change(function (evt) {
+    $('#sizeText').change(function (evt) {
         window.location = '/leaderboard?size=' + evt.target.value;
     });
 
     $('#singleAvg').addClass('selected');
-    $("#avg5").hide();
-    $("#avg12").hide();
-    $("#avg100").hide();
+    $('#avg5').hide();
+    $('#avg12').hide();
+    $('#avg100').hide();
 });
 </script>
 
@@ -143,38 +150,40 @@ $(document).ready(function () {
 
 <body>
 
-    <nav id="sizes">
+    <nav id="sizes" class=".container-fluid">
         <ul class="nav nav-justified">
-            <li href="/" class="s col-md-1">back</li>
-            <li id="size" class="col-md-1"><input id="sizeText" size="3" maxlength="3"></li>
-            <li id="2" class="s col-md-1">2</li>
-            <li id="3" class="s col-md-1">3</li>
-            <li id="4" class="s col-md-1">4</li>
-            <li id="5" class="s col-md-1">5</li>
-            <li id="6" class="s col-md-1">6</li>
-            <li id="7" class="s col-md-1">7</li>
-            <li id="8" class="s col-md-1">8</li>
-            <li id="9" class="s col-md-1">9</li>
-            <li id="10" class="s col-md-1">10</li>
-            <li id="11" class="s col-md-1">11</li>
-            <li id="12" class="s col-md-1">12</li>
-            <li id="13" class="s col-md-1">13</li>
-            <li id="14" class="s col-md-1">14</li>
-            <li id="15" class="s col-md-1">15</li>
-            <li id="16" class="s col-md-1">16</li>
-            <li id="17" class="s col-md-1">17</li>
-            <li id="18" class="s col-md-1">18</li>
-            <li id="19" class="s col-md-1">19</li>
-            <li id="20" class="s col-md-1">20</li>
-            <li class="col-md-1"> </li>
+            <li href="/" class="s">back</li>
+            <li id="size" class=""><input id="sizeText" size="3" maxlength="3"></li>
+            <li id="2" class="s">2</li>
+            <li id="3" class="s">3</li>
+            <li id="4" class="s">4</li>
+            <li id="5" class="s">5</li>
+            <li id="6" class="s">6</li>
+            <li id="7" class="s">7</li>
+            <li id="8" class="s">8</li>
+            <li id="9" class="s">9</li>
+            <li id="10" class="s">10</li>
+            <li id="11" class="s">11</li>
+            <li id="12" class="s">12</li>
+            <li id="13" class="s">13</li>
+            <li id="14" class="s">14</li>
+            <li id="15" class="s">15</li>
+            <li id="16" class="s">16</li>
+            <li id="17" class="s">17</li>
+            <li id="18" class="s">18</li>
+            <li id="19" class="s">19</li>
+            <li id="20" class="s">20</li>
+            <li class=""> </li>
         </ul>
     </nav>
 
+    <div class=".container-fluid">
     <div id="avgs" class="row">
         <div id="singleAvg" class="avg col-md-3">Single</div><!--
      --><div id="avg5Avg" class="avg col-md-3">Avg5</div><!--
      --><div id="avg12Avg" class="avg col-md-3">Avg12</div><!--
      --><div id="avg100Avg" class="avg col-md-3">Avg100</div>
+    </div>
     </div>
     
     
