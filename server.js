@@ -2,6 +2,7 @@ var fs = require('fs'),
 	Hapi = require('hapi'),
 	handlebars = require('handlebars'),
 	winston = require('winston'),
+	passwordHash = require('password-hash'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	timeout = 0,
 	users = {}, times = {};
@@ -173,13 +174,14 @@ server.start(function() {
 });
 
 function validate(username, password) {
-	return users[username].password === password;
+	return passwordHash.verify(password, users[username].password);
+	// return users[username].password === password;
 }
 
 function addUser(username, password) {
 	if (!users[username]) {
 		users[username] = {
-			password: password,
+			password: passwordHash.generate(password),
 			best: {}
 		};
 		return true;
