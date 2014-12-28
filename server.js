@@ -1,4 +1,3 @@
-
 var fs = require('fs'),
 	Hapi = require('hapi'),
 	handlebars = require('handlebars'),
@@ -27,7 +26,7 @@ var logger = new (winston.Logger)({
 	}
 });
 
-var config = {autosave: 5*60};
+var config = {autosave: 5*60, port:8000};
 try {
 	config = require('./config.json');
 } catch (e) {

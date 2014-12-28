@@ -31,53 +31,56 @@ var cwidth = 300,
 var n = 3;
 var squares;
 var solved;
-var colors = ["white","white","#FF6","white","#48C","white","#5F8","white","#222","white"];
+var colors = ['white','white','#FF6','white','#48C','white','#5F8','white','#222','white'];
 
 var browser = getBrowser(); // only want to call this once
 
+loadCSS();
+
 $(document).ready(function () {
+
     $('#loginButton').prop('disabled', true);
-    $("#loginform").hide();
-    $("#logout" ).hide();
+    $('#loginform').hide();
+    $('#logout').hide();
     username = window.localStorage.getItem('username');
     password = window.localStorage.getItem('password');
 
     if (username && username !== null && username !== 'null' &&
         password && password !== null && password !== 'null') {
         console.log(username, password);
-        $("#loginform" ).hide();
-        $("#logout").show();
+        $('#loginform').hide();
+        $('#logout').show();
         $.post("login", {username: username, password: password}, function (data) {
             if (!data){
-                $("#loginform").show();
-                $("#logout").hide();
+                $('#loginform').show();
+                $('#logout').hide();
             }
             init();
         },'json');
     } else {
-        $("#loginform").show();
+        $('#loginform').show();
         init();
     }
 
 });
 
 function login() {
-    username = $("#username")[0].value;
-    password = $("#password")[0].value;
+    username = $('#username')[0].value;
+    password = $('#password')[0].value;
 
-    $.post("login", {username: username, password: password}, function (data) {
+    $.post('login', {username: username, password: password}, function (data) {
         if (data) {
             //login succesful
-            $("#loginform").hide();
-            $("#logout").show();
+            $('#loginform').hide();
+            $('#logout').show();
             window.localStorage.setItem('username', username);
             window.localStorage.setItem('password', password);
 
             getTimes();
             loadAll();
 
-            $("#username")[0].value = "";
-            $("#password")[0].value = "";
+            $('#username')[0].value = '';
+            $('#password')[0].value = '';
         }
     },'json');
 }
@@ -88,8 +91,8 @@ function logout() {
     username = null;
     password = null;
 
-    $("#loginform").show();
-    $("#logout").hide();
+    $('#loginform').show();
+    $('#logout').hide();
 }
 
 /*******************************
@@ -100,8 +103,8 @@ function init() {
     window.onkeydown = function(event){doKey(event);};
 
     loadStuff();
-    document.bgColor = "black";
-    document.fgColor = "white";
+    document.bgColor = 'black';
+    document.fgColor = 'white';
     changedEvent(false);
     changedHideStats();
     loadAll();
@@ -842,28 +845,3 @@ function trim(number, nDigits) {
     var len = trimmed.length;
     return trimmed.substr(0,len - nDigits) + "." + trimmed.substr(len - nDigits, nDigits);
 }
-
-function getBrowser() {
-    // http://www.quirksmode.org/js/detect.html
-    var versionSearchString;
-    var dataBrowser = [
-        {string:navigator.userAgent, subString:"Chrome", identity:"Chrome"},
-        {string:navigator.userAgent, subString:"Safari", identity:"Chrome"},
-        {string:navigator.userAgent, subString:"Firefox", identity:"Firefox"},
-        {string:navigator.userAgent, subString:"MSIE", identity:"IE", versionSearch:"MSIE"}];
-
-    function searchString(data) {
-        for (var i=0;i<data.length;i++) {
-        var dataString = data[i].string;
-        var dataProp = data[i].prop;
-        if (dataString) {
-            if (dataString.indexOf(data[i].subString) != -1)
-                return data[i].identity;
-            } else if (dataProp)
-                return data[i].identity;
-        }
-    };
- 
-    return searchString(dataBrowser) || "An unknown browser";
-}
-// -->

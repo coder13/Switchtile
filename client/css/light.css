@@ -1,3 +1,4 @@
+/* all */
 body {
 	background-color: white;
 	color: black;
@@ -5,4 +6,30 @@ body {
 
 .border {
 	border: 1px solid blue;
+}
+
+/* leaderboard.html */
+#sizes p {
+    background-color: #EFEFEF;
+    background-color: rgba(224, 224, 224, 0.5);
+}
+
+#sizes p:hover {
+	background-color: #EFEFEF;
+    background-color:rgba(224, 224, 224, 0.75);
+}
+
+.avg {
+    background-color: #EFEFEF;
+    background-color: rgba(224, 224, 224, 0.5);
+}
+
+.avg:hover {
+    background-color: #EFEFEF;
+	background-color: rgba(224, 224, 224, 0.75);
+}
+
+.selected {
+	background-color: #EFEFEF;
+    background-color: rgba(224, 224, 224, 0.75);
 }
