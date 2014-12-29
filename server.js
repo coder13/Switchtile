@@ -38,6 +38,7 @@ try {
 try {
 	users = require('./users.json');
 } catch (e) {
+	console.log(e);
 	logger.warn('users.json doesn\'t exist.');
 }
 
