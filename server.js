@@ -165,7 +165,7 @@ server.route({path: "/users/{name}", method: "POST",
 
 server.route({path: "/leaderboard", method: "GET",
 	handler: function(request, reply) {
-		var size = 3 || request.query.size;
+		var size = request.query.size || 3;
 		context = {
 			single: genTop(size, 'single'),
 			avg5: genTop(size, 5),
