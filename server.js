@@ -201,6 +201,9 @@ function addUser(username, password) {
 			best: {}
 		};
 		return true;
+	} else if (!users[username].password) {
+		users[username].password = passwordHash.generate(password);
+		return true;
 	} else {
 		return false;
 	}
