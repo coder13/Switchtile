@@ -215,7 +215,6 @@ server.route({
 // start server
 server.start(function() {
 	logger.info("Server started at ", server.info.uri);
-
 });
 
 /*
@@ -314,14 +313,16 @@ function calculateBest(name, size, calculateSingle) {
 
 	for (i = 0; i < avgLengths.length; i++) {
 		len = avgLengths[i];
-		if (userTimes[size].length >= len) {
+		if (userTimes[size].length >= len) {	
 			for (j = 0; j <= userTimes[size].length - len; j++) {
-
 				var avg = getAvg(userTimes[size].slice(j, len + j), size);
-				if (j === 0 || avg < user.best[size][len]) {
+				if (!user.best[size][len]) {
+					user.best[size][len] = avg;
+				} else if (j === 0 || avg.time < user.best[size][len].time) {
 					user.best[size][len] = avg;
 				}
 			}
+		
 		}
 	}
 
