@@ -77,7 +77,7 @@ server.connection({
 });
 
 handlebars.registerHelper('inc', function(value, options) {
-    return parseInt(value, 10) + 1;
+    return +value + 1;
 });
 
 handlebars.registerHelper('highlight', function(value, options) {
@@ -152,9 +152,8 @@ server.route({path: "/users/{name}", method: "GET",
 server.route({path: "/users/{name}", method: "POST",
 	handler: function(request, reply) {
 		var data = request.payload;
-		data.time = +data.time;
 		if (validate(data.user.name, data.user.password)) {
-			addTime(request.params.name, data.size, data.time, data.moves);
+			addTime(request.params.name, data.size, +data.time, +data.moves);
 			
 			timeout = 0;
 			reply(users[request.params.name].best[data.size]);
@@ -173,7 +172,6 @@ server.route({path: "/leaderboard", method: "GET",
 			avg12: genTop(size, 12),
 			avg100: genTop(size, 100),
 		};
-		console.log(context);
 		reply.view('leaderboard', context);
 	}
 });
@@ -183,6 +181,13 @@ server.start(function() {
 	logger.info("Server started at ", server.info.uri);
 
 });
+
+/*
+ *  Helper functions
+ */
+
+
+//users
 
 function validate(username, password) {
 	return passwordHash.verify(password, users[username].password);
@@ -200,6 +205,8 @@ function addUser(username, password) {
 		return false;
 	}
 }
+
+//times 
 
 // get user. If user doesn't exist, make user
 function getTimes(username) {
@@ -222,13 +229,11 @@ function addTime(name, size, time, moves) {
 		userTimes[size] = userTimes[size].concat(time);
 	}
 	userTimes[size] = userTimes[size].slice(userTimes[size].length-100);
-	if (users[name].best && users[name].best[size] && users[name].best[size].single) {
-		if (time <= users[name].best[size].single.time)
-			users[name].best[size].single = {time: time, details: getDetails(time, size, moves)};
-		calculateBest(name, size, false);
-	} else {
-		calculateBest(name, size, true);
+
+	if (isBest(name, size, 'single', time)) {
+		setBest(name, size, 'single', {time: time, details: getDetails(time, size, moves)});
 	}
+	calculateBest(name, size, false);
 }
 
 
@@ -260,7 +265,7 @@ function calculateBest(name, size, calculateSingle) {
 				min = i;
 			}
 		}
-		setBest(name, size, 'single', {time: userTimes[size][min], details: {}});
+		setBest(name, size, 'single', {time: userTimes[size][min]});
 	}
 
 	for (i = 0; i < avgLengths.length; i++) {
@@ -278,14 +283,30 @@ function calculateBest(name, size, calculateSingle) {
 	
 }
 
+function isBest(name, size, avg, time) {
+	if (!users[name]) return false;
+	if (!users[name].best[size]) return true;
+	if (!users[name].best[size][avg] && avg == 'single') {
+		var min = 0;
+		for (i = 1; i < times[name][size].length; i++) {
+			if (times[name][size][i] < times[name][size][min]) {
+				min = i;
+			}
+		}
+		users[name].best[size].single = {time: times[name][min]};
+		return min <= users[name].best[size][avg].time;
+	}
+	return time <= users[name].best[size][avg].time;
+}
+
 function setBest(name, size, avg, time) {
-	if (!users[user])
+	if (!users[name])
 		return false;
-	if (!users[user].best)
-		users[user].best = {};
-	if (!users[user].best[size])
-		users[user].best[size] = {};
-	users[user].best[size][avg] = time;
+	if (!users[name].best)
+		users[name].best = {};
+	if (!users[name].best[size])
+		users[name].best[size] = {};
+	users[name].best[size][avg] = time;
 	return true;
 }
 
@@ -334,22 +355,24 @@ function genTop(size, avg) {
 		if (!users[user].best[size])
 			continue;
 
-		var a = users[user].best[size][avg];
+		var entry = users[user].best[size][avg];
 
-		if (!a && avg == 'single') {
+
+		if ((!entry || !users[user].best[size][avg]) && avg == 'single') {
 			calculateBest(user, size, true);
-			a = users[user].best[size][avg];
+			entry = users[user].best[size].single;
 		}
 
-		if (a) {
+		if (entry) {
 			if (avg == 'single') {
-				if (a.details && Object.keys(a.details).length !== 0)
-					list.push({name: user, time: pretty(a.time), details: a.details});
+
+				if (entry.details && Object.keys(entry.details).length != 0)
+					list.push({name: user, time: pretty(entry.time), details: entry.details});
 				else
-					list.push({name: user, time: pretty(a.time)});
+					list.push({name: user, time: pretty(entry.time)});
 			} else {
-				list.push({name: user, time: pretty(a.time),
-							times: _.map(a.times, pretty).join(', ')});
+				list.push({name: user, time: pretty(entry.time),
+							times: _.map(entry.times, pretty).join(', ')});
 			}
 		}
 
