@@ -5,7 +5,6 @@ var fs = require('fs'),
 	passwordHash = require('password-hash'),
 	_ = require('underscore'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
-	timeout = 0,
 	users = {},
 	times = {};
 
@@ -55,17 +54,14 @@ try {
 // save upon SIGINT (ctrl + c)
 process.on('SIGINT', function() {
 	save();
-	logger.info('shuting down. Saving and safely stoping....');
+	console.log('shuting down. Saving and safely stoping....');
 	process.kill(0);
 });
 
 // autosave
 setInterval(function() {
-	if (timeout == 0) {
-		logger.info("autosaving....");
-		save();
-		timeout++;
-	}
+	logger.info("autosaving....");
+	save();
 }, config.autosave * 1000);
 
 // save times
@@ -184,7 +180,6 @@ server.route({
 	path: "/users/{name}",
 	method: "POST",
 	handler: function(request, reply) {
-		timeout = 0;
 		var data = request.payload;
 		if (validate(data.user.name, data.user.password)) {
 			addTime(request.params.name, data.size, +data.time, +data.moves);
@@ -316,10 +311,8 @@ function calculateBest(name, size, calculateSingle) {
 			for (j = 0; j <= userTimes[size].length - len; j++) {
 				var avg = getAvg(userTimes[size].slice(j, len + j), size);
 				if (!user.best[size][len]) {
-					console.log(avg.time);
 					user.best[size][len] = avg;
 				} else if (j === 0 || avg.time < user.best[size][len].time) {
-					console.log(avg.time, user.best[size][len].time);
 					user.best[size][len] = avg;
 				}
 			}
