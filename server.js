@@ -3,6 +3,7 @@ var fs = require('fs'),
 	handlebars = require('handlebars'),
 	winston = require('winston'),
 	passwordHash = require('password-hash'),
+	_ = require('underscore'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	timeout = 0,
 	users = {}, times = {};
@@ -157,11 +158,12 @@ server.route({path: "/users/{name}", method: "POST",
 
 server.route({path: "/leaderboard", method: "GET",
 	handler: function(request, reply) {
+		var size = 3 || request.query.size;
 		context = {
-			single: genTop(request.query.size, 'single'),
-			avg5: genTop(request.query.size, 5),
-			avg12: genTop(request.query.size, 12),
-			avg100: genTop(request.query.size, 100),
+			single: genTop(size, 'single'),
+			avg5: genTop(size, 5),
+			avg12: genTop(size, 12),
+			avg100: genTop(size, 100),
 		};
 		reply.view('leaderboard', context);
 	}
@@ -233,7 +235,7 @@ function calculateBest(name, size) {
 			min = i;
 		}
 	}
-	user.best[size].single = userTimes[size][min];
+	user.best[size].single = {time: userTimes[size][min]};
 
 	for (i = 0; i < avgLengths.length; i++) {
 		len = avgLengths[i];
@@ -242,6 +244,7 @@ function calculateBest(name, size) {
 
 				var avg = getAvg(userTimes[size].slice(j, len+j), size);
 				if (j === 0 || avg < user.best[size][len]) {
+					console.log(avg);
 					user.best[size][len] = avg;
 				}
 			}
@@ -264,12 +267,12 @@ function trim(number, nDigits) {
 
 function pretty(time) {
 	time = Math.round(time);
-	var mins = Math.floor(time/60000);
-	var secs = trim((time - 60000*mins)/1000, 3);
+	var mins = Math.floor(time / 60000);
+	var secs = trim((time - 60000 * mins) / 1000, 3);
 	if (mins === 0) {
 		return secs;
 	} else {
-		return mins + (secs<10?":0":":") + secs;
+		return mins + (secs < 10 ? ":0" : ":") + secs;
 	}
 }
 
@@ -284,7 +287,7 @@ function getAvg(list, size) {
 		sum += list[i];
 	}
 	sum = sum - list[min] - list[max];
-	return sum/(list.length-2);
+	return {time: sum/(list.length-2), times: list};
 }
 
 function genTop(size, avg) {
@@ -296,8 +299,14 @@ function genTop(size, avg) {
 			continue;
 
 		if (users[user].best[size][avg]) {
-			list.push({name: user, time: pretty(users[user].best[size][avg]), times: []});
+			if (avg == 'single') {
+				list.push({name: user, time: pretty(users[user].best[size][avg].time)});
+			} else {
+				list.push({name: user, time: pretty(users[user].best[size][avg].time),
+							times: _.map(users[user].best[size][avg].times, pretty).join(', ')});
+			}
 		}
+
 	}
 	list = list.sort(compare);
 	return list;
