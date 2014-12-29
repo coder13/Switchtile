@@ -244,7 +244,6 @@ function calculateBest(name, size) {
 
 				var avg = getAvg(userTimes[size].slice(j, len+j), size);
 				if (j === 0 || avg < user.best[size][len]) {
-					console.log(avg);
 					user.best[size][len] = avg;
 				}
 			}
