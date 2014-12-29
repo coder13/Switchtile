@@ -6,15 +6,16 @@ var fs = require('fs'),
 	_ = require('underscore'),
 	serverPort = (process.argv[2] ? +process.argv[2] : 8000),
 	timeout = 0,
-	users = {}, times = {};
+	users = {},
+	times = {};
 
-var logger = new (winston.Logger)({
+var logger = new(winston.Logger)({
 	transports: [
-		new (winston.transports.Console)({ // console output
+		new(winston.transports.Console)({ // console output
 			colorize: true,
 			timestamp: true
 		}),
-		new (winston.transports.File)({ // file output
+		new(winston.transports.File)({ // file output
 			filename: 'switchtile.log',
 			timestamp: true,
 			json: false,
@@ -28,7 +29,10 @@ var logger = new (winston.Logger)({
 	}
 });
 
-var config = {autosave: 5*60, port:8000};
+var config = {
+	autosave: 5 * 60,
+	port: 8000
+};
 try {
 	config = require('./config.json');
 } catch (e) {
@@ -58,7 +62,7 @@ process.on('SIGINT', function() {
 
 // autosave
 setInterval(function() {
-	if (timeout === 0) {
+	if (timeout == 0) {
 		logger.info("autosaving....");
 		save();
 		timeout++;
@@ -78,40 +82,62 @@ server.connection({
 });
 
 handlebars.registerHelper('inc', function(value, options) {
-    return +value + 1;
+	return +value + 1;
 });
 
 handlebars.registerHelper('highlight', function(value, options) {
-    return value % 2 ? 'even' : 'odd';
+	return value % 2 ? 'even' : 'odd';
 });
 
 // setup for serving html pages
 server.views({
-    engines: {html: require('handlebars')},
-    path: "./client",
-    isCached: false,
+	engines: {
+		html: require('handlebars')
+	},
+	path: "./client",
+	isCached: false,
 });
 
 // routes
 
 // Serve index.html
-server.route({ method: 'GET', path: '/', handler: {view: 'index'}});
+server.route({
+	method: 'GET',
+	path: '/',
+	handler: {
+		view: 'index'
+	}
+});
 
-server.route({ method: 'GET', path: '/credit', handler: {view: 'credit'}});
-server.route({ method: 'GET', path: '/howto', handler: {view: 'howto'}});
+server.route({
+	method: 'GET',
+	path: '/credit',
+	handler: {
+		view: 'credit'
+	}
+});
+server.route({
+	method: 'GET',
+	path: '/howto',
+	handler: {
+		view: 'howto'
+	}
+});
 
 // Serve everything else
 server.route({
-    method: 'GET',
-    path: '/{param*}',
-    handler: {
-        directory: {
-            path: 'client'
-        }
-    }
+	method: 'GET',
+	path: '/{param*}',
+	handler: {
+		directory: {
+			path: 'client'
+		}
+	}
 });
 
-server.route({path: "/login", method: "POST",
+server.route({
+	path: "/login",
+	method: "POST",
 	handler: function(request, reply) {
 		var username = request.payload.username,
 			password = request.payload.password;
@@ -121,7 +147,7 @@ server.route({path: "/login", method: "POST",
 			return;
 		}
 		var r = addUser(username, password);
-		
+
 		if (r) {
 			logger.info('Creating user: %s', username);
 			reply(true);
@@ -133,30 +159,37 @@ server.route({path: "/login", method: "POST",
 				logger.info('User: %s tried to login in.', username);
 			}
 			reply(v);
-			
+
 		}
 	}
 });
 
 // Get all times for user
-server.route({path: "/users/{name}", method: "GET",
+server.route({
+	path: "/users/{name}",
+	method: "GET",
 	handler: function(request, reply) {
 		var name = request.params.name;
 		if (users[name])
-			reply(JSON.stringify({times: getTimes(name), pbs: users[name].best}));
+			reply(JSON.stringify({
+				times: getTimes(name),
+				pbs: users[name].best
+			}));
 		else
 			reply(false);
 	}
 });
 
-// post time for user
-server.route({path: "/users/{name}", method: "POST",
+// post time for users
+server.route({
+	path: "/users/{name}",
+	method: "POST",
 	handler: function(request, reply) {
+		timeout = 0;
 		var data = request.payload;
 		if (validate(data.user.name, data.user.password)) {
 			addTime(request.params.name, data.size, +data.time, +data.moves);
-			
-			timeout = 0;
+
 			reply(users[request.params.name].best[data.size]);
 		} else {
 			reply(false);
@@ -164,7 +197,9 @@ server.route({path: "/users/{name}", method: "POST",
 	}
 });
 
-server.route({path: "/leaderboard", method: "GET",
+server.route({
+	path: "/leaderboard",
+	method: "GET",
 	handler: function(request, reply) {
 		var size = request.query.size || 3;
 		context = {
@@ -232,10 +267,13 @@ function addTime(name, size, time, moves) {
 	} else {
 		userTimes[size] = userTimes[size].concat(time);
 	}
-	userTimes[size] = userTimes[size].slice(userTimes[size].length-100);
+	userTimes[size] = userTimes[size].slice(userTimes[size].length - 100);
 
 	if (isBest(name, size, 'single', time)) {
-		setBest(name, size, 'single', {time: time, details: getDetails(time, size, moves)});
+		setBest(name, size, 'single', {
+			time: time,
+			details: getDetails(time, size, moves)
+		});
 	}
 	calculateBest(name, size, false);
 }
@@ -245,8 +283,8 @@ function getDetails(time, size, moves) {
 	return {
 		moves: moves,
 		mps: Math.round(100000 * moves / time) / 100, // moves per second
-		mpp: Math.round(1000 * (moves / ( size * size))) / 1000 // moves per piece
-    };
+		mpp: Math.round(1000 * (moves / (size * size))) / 1000 // moves per piece
+	};
 }
 
 function calculateBest(name, size, calculateSingle) {
@@ -260,16 +298,18 @@ function calculateBest(name, size, calculateSingle) {
 
 	userTimes = getTimes(name);
 
-	var avgLengths = [5,12,100];
+	var avgLengths = [5, 12, 100];
 
-	if (calculateSingle){
+	if (calculateSingle) {
 		var min = 0;
 		for (i = 1; i < userTimes[size].length; i++) {
 			if (userTimes[size][i] < userTimes[size][min]) {
 				min = i;
 			}
 		}
-		setBest(name, size, 'single', {time: userTimes[size][min]});
+		setBest(name, size, 'single', {
+			time: userTimes[size][min]
+		});
 	}
 
 	for (i = 0; i < avgLengths.length; i++) {
@@ -277,14 +317,14 @@ function calculateBest(name, size, calculateSingle) {
 		if (userTimes[size].length >= len) {
 			for (j = 0; j <= userTimes[size].length - len; j++) {
 
-				var avg = getAvg(userTimes[size].slice(j, len+j), size);
+				var avg = getAvg(userTimes[size].slice(j, len + j), size);
 				if (j === 0 || avg < user.best[size][len]) {
 					user.best[size][len] = avg;
 				}
 			}
 		}
 	}
-	
+
 }
 
 function isBest(name, size, avg, time) {
@@ -297,7 +337,9 @@ function isBest(name, size, avg, time) {
 				min = i;
 			}
 		}
-		users[name].best[size].single = {time: times[name][min]};
+		users[name].best[size].single = {
+			time: times[name][min]
+		};
 		return min <= users[name].best[size][avg].time;
 	}
 	return time <= users[name].best[size][avg].time;
@@ -323,7 +365,7 @@ function trim(number, nDigits) {
 		trimmed = "0" + trimmed;
 	}
 	var len = trimmed.length;
-	return trimmed.substr(0,len - nDigits) + "." + trimmed.substr(len - nDigits, nDigits);
+	return trimmed.substr(0, len - nDigits) + "." + trimmed.substr(len - nDigits, nDigits);
 }
 
 function pretty(time) {
@@ -338,7 +380,8 @@ function pretty(time) {
 }
 
 function getAvg(list, size) {
-	var max = 0, min = 0;
+	var max = 0,
+		min = 0;
 	var sum = list[0];
 	for (var i = 1; i < list.length; i++) {
 		if (list[i] > list[max])
@@ -348,7 +391,10 @@ function getAvg(list, size) {
 		sum += list[i];
 	}
 	sum = sum - list[min] - list[max];
-	return {time: sum/(list.length-2), times: list};
+	return {
+		time: sum / (list.length - 2),
+		times: list
+	};
 }
 
 function genTop(size, avg) {
@@ -371,12 +417,22 @@ function genTop(size, avg) {
 			if (avg == 'single') {
 
 				if (entry.details && Object.keys(entry.details).length != 0)
-					list.push({name: user, time: pretty(entry.time), details: entry.details});
+					list.push({
+						name: user,
+						time: pretty(entry.time),
+						details: entry.details
+					});
 				else
-					list.push({name: user, time: pretty(entry.time)});
+					list.push({
+						name: user,
+						time: pretty(entry.time)
+					});
 			} else {
-				list.push({name: user, time: pretty(entry.time),
-							times: _.map(entry.times, pretty).join(', ')});
+				list.push({
+					name: user,
+					time: pretty(entry.time),
+					times: _.map(entry.times, pretty).join(', ')
+				});
 			}
 		}
 
@@ -385,7 +441,7 @@ function genTop(size, avg) {
 	return list;
 }
 
-function compare(a,b) {
+function compare(a, b) {
 	if (+a.time < +b.time)
 		return -1;
 	if (+a.time > +b.time)
