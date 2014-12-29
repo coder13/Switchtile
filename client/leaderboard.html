@@ -186,37 +186,36 @@ $(document).ready(function () {
     </div>
     </div>
     
-    
     <div id="single" class="average">
-
     <table>
         <tr>
             <th id="thPlace" width="40px">#</th>
             <th id="thName" width="15%">Name</th>
             <th id="thAverage" width="200px">Single</th>
-            <th></th>
+            <th id="thDetails">Details</th>
         </tr>
         {{#each single}}
         <tr class="{{highlight @index}}">
             <td>{{inc @index}}</td>
             <td>{{name}}</td>
             <td>{{time}}</td>
-            <td>{{details}}</td>
+            <td>
+            {{#if details}}
+                {{details.moves}} moves at {{details.mps}} moves/sec with {{details.mpp}} moves per piece
+            {{/if}}
+        </td>
         </tr>
         {{/each}}
     </table>
-
     </div>
 
-
     <div id="avg5" class="average">
-
     <table>
         <tr>
-            <td id="thPlace" width="40px">#</td>
-            <td id="thName" width="15%">Name</td>
-            <td id="thAverage" width="200px">Average</td>
-            <td id="thTimes">Times</td>
+            <th id="thPlace" width="40px">#</th>
+            <th id="thName" width="15%">Name</th>
+            <th id="thAverage" width="200px">Average</th>
+            <th id="thTimes">Times</th>
         </tr>
         {{#each avg5}}
         <tr class="{{highlight @index}}">
@@ -227,11 +226,9 @@ $(document).ready(function () {
         </tr>
         {{/each}}
     </table>
-
     </div>
 
     <div id="avg12" class="average">
-
     <table>
         <tr>
             <th id="thPlace" width="40px">#</th>
@@ -248,11 +245,9 @@ $(document).ready(function () {
         </tr>
         {{/each}}
     </table>
-
     </div>
 
     <div id="avg100" class="average">
-
     <table>
         <tr>
             <th id="thPlace" width="40px">#</th>
@@ -269,7 +264,6 @@ $(document).ready(function () {
         </tr>
         {{/each}}
     </table>
-
     </div>
 
     <footer style="position: absolute;bottom: 0; width: 98%;">

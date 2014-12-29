@@ -9,7 +9,7 @@ document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 var username = null, password = null;
 var pEvent = "single";
 var cnt = 0; // move count
-var times = {};
+var times = {}, best = {};
 var avgLengths = [5,12,100];
 var bestAverages = [[],[],[]]; // best of 5, 12, 100
 var nCurrent, nTotal; // for marathon and relay
@@ -686,8 +686,21 @@ function stopTimer(good) {
             // figure out averages and display
             displayTimes(false, time);
 
-            if (username && username !== null && username !== 'null')
-                $.post("users/" + username, {size: n, time: time, user: {name: username, password: password}}, 'json');
+            if (username && username !== null && username !== 'null') {
+                data = {
+                    size: n,
+                    time: time,
+                    moves: cnt,
+                    user: {
+                        name: username,
+                        password: password
+                    }
+                };
+                $.post("users/" + username, data, function (data) {
+                    // best[size] = data;
+                }, 'json');
+                
+            }
         }
     }
 }
@@ -743,7 +756,8 @@ function displayTimes(loadedPage, time) {
     }
     document.getElementById('stats').innerHTML = v;
     if (!loadedPage) {
-        document.getElementById('moves').innerHTML = cnt + " moves at " + Math.round(100000*cnt/time)/100 + " moves/sec<br>" + 
+        document.getElementById('moves').innerHTML = cnt + " moves at " +
+        Math.round(100000*cnt/time)/100 + " moves/sec<br>" +
         Math.round(1000*(cnt/(n*n)))/1000 + " moves per piece";
     } else {
         document.getElementById('moves').innerHTML = "";
@@ -763,7 +777,7 @@ function getAvg(n, list) {
     }
     sum = sum - list[min] - list[max];
     var v = "";
-    for (var i=0; i<n; i++) {
+    for (var i = 0; i < n; i++) {
         if (i == min || i == max) {
             v += "(" + pretty(list[i]) + ") ";
         } else {
@@ -776,7 +790,7 @@ function getAvg(n, list) {
 }
 
 function clearTimes() {
-    times = {};
+    times[n] = [];
     document.getElementById('stats').innerHTML = "";
 }
 
@@ -810,13 +824,13 @@ function loadStuff() {
             relayData = tmp;
         tmp = window.localStorage.getItem("switchtile_n");
         if (tmp !== null)
-            n = parseInt(tmp);
+            n = parseInt(tmp, 10);
         if (n < 2)
             n = 2;
         tmp = window.localStorage.getItem("switchtile_zoom");
         if (tmp !== null) {
-            cwidth = parseInt(tmp);
-            cheight = parseInt(tmp);
+            cwidth = parseInt(tmp, 10);
+            cheight = parseInt(tmp, 10);
         }
     }
 }
@@ -824,12 +838,14 @@ function loadStuff() {
 function getTimes() {
     if (username && username !== null && username !== 'null') {
         $.getJSON("users/" + username, function(data) {
-            times = data;
+            times = data.times;
+            best = data.best;
             console.log(data);
             displayTimes(true);
         });
     } else {
         times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
+        best = JSON.parse(window.localStorage.getItem('switchtile_best')) || {};
     }
 }
 

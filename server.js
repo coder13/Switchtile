@@ -77,7 +77,7 @@ server.connection({
 });
 
 handlebars.registerHelper('inc', function(value, options) {
-    return parseInt(value) + 1;
+    return parseInt(value, 10) + 1;
 });
 
 handlebars.registerHelper('highlight', function(value, options) {
@@ -128,6 +128,9 @@ server.route({path: "/login", method: "POST",
 			var v = validate(username, password);
 			if (v)
 				logger.info('User: %s logging in', username);
+			else {
+				logger.info('User: %s tried to login in.', username);
+			}
 			reply(v);
 			
 		}
@@ -136,9 +139,13 @@ server.route({path: "/login", method: "POST",
 
 // Get all times for user
 server.route({path: "/users/{name}", method: "GET",
-    handler: function(request, reply) {
-		reply(JSON.stringify(getTimes(request.params.name)));
-    }
+	handler: function(request, reply) {
+		var name = request.params.name;
+		if (users[name])
+			reply(JSON.stringify({times: getTimes(name), pbs: users[name].best}));
+		else
+			reply(false);
+	}
 });
 
 // post time for user
@@ -147,9 +154,10 @@ server.route({path: "/users/{name}", method: "POST",
 		var data = request.payload;
 		data.time = +data.time;
 		if (validate(data.user.name, data.user.password)) {
-			addTimes(request.params.name, data.size, data.time);
+			addTime(request.params.name, data.size, data.time, data.moves);
+			
 			timeout = 0;
-			reply(true);
+			reply(users[request.params.name].best[data.size]);
 		} else {
 			reply(false);
 		}
@@ -165,6 +173,7 @@ server.route({path: "/leaderboard", method: "GET",
 			avg12: genTop(size, 12),
 			avg100: genTop(size, 100),
 		};
+		console.log(context);
 		reply.view('leaderboard', context);
 	}
 });
@@ -203,20 +212,35 @@ function getTimes(username) {
 }
 
 // add time for size. If size doesn't exist, make it
-function addTimes(name, size, times) {
+function addTime(name, size, time, moves) {
 	userTimes = getTimes(name);
 	if (!userTimes)
 		return;
 	if (!userTimes[size]) {
-		userTimes[size] = [times];
+		userTimes[size] = [time];
 	} else {
-		userTimes[size] = userTimes[size].concat(times);
+		userTimes[size] = userTimes[size].concat(time);
 	}
 	userTimes[size] = userTimes[size].slice(userTimes[size].length-100);
-	calculateBest(name, size);
+	if (users[name].best && users[name].best[size] && users[name].best[size].single) {
+		if (time <= users[name].best[size].single.time)
+			users[name].best[size].single = {time: time, details: getDetails(time, size, moves)};
+		calculateBest(name, size, false);
+	} else {
+		calculateBest(name, size, true);
+	}
 }
 
-function calculateBest(name, size) {
+
+function getDetails(time, size, moves) {
+	return {
+		moves: moves,
+		mps: Math.round(100000 * moves / time) / 100, // moves per second
+		mpp: Math.round(1000 * (moves / ( size * size))) / 1000 // moves per piece
+    };
+}
+
+function calculateBest(name, size, calculateSingle) {
 	user = users[name];
 	if (!user.best)
 		user.best = {};
@@ -229,13 +253,15 @@ function calculateBest(name, size) {
 
 	var avgLengths = [5,12,100];
 
-	var min = 0;
-	for (var i = 1; i < userTimes[size].length; i++) {
-		if (userTimes[size][i] < userTimes[size][min]) {
-			min = i;
+	if (calculateSingle){
+		var min = 0;
+		for (i = 1; i < userTimes[size].length; i++) {
+			if (userTimes[size][i] < userTimes[size][min]) {
+				min = i;
+			}
 		}
+		setBest(name, size, 'single', {time: userTimes[size][min], details: {}});
 	}
-	user.best[size].single = {time: userTimes[size][min]};
 
 	for (i = 0; i < avgLengths.length; i++) {
 		len = avgLengths[i];
@@ -250,6 +276,17 @@ function calculateBest(name, size) {
 		}
 	}
 	
+}
+
+function setBest(name, size, avg, time) {
+	if (!users[user])
+		return false;
+	if (!users[user].best)
+		users[user].best = {};
+	if (!users[user].best[size])
+		users[user].best[size] = {};
+	users[user].best[size][avg] = time;
+	return true;
 }
 
 function trim(number, nDigits) {
@@ -297,12 +334,22 @@ function genTop(size, avg) {
 		if (!users[user].best[size])
 			continue;
 
-		if (users[user].best[size][avg]) {
+		var a = users[user].best[size][avg];
+
+		if (!a && avg == 'single') {
+			calculateBest(user, size, true);
+			a = users[user].best[size][avg];
+		}
+
+		if (a) {
 			if (avg == 'single') {
-				list.push({name: user, time: pretty(users[user].best[size][avg].time)});
+				if (a.details && Object.keys(a.details).length !== 0)
+					list.push({name: user, time: pretty(a.time), details: a.details});
+				else
+					list.push({name: user, time: pretty(a.time)});
 			} else {
-				list.push({name: user, time: pretty(users[user].best[size][avg].time),
-							times: _.map(users[user].best[size][avg].times, pretty).join(', ')});
+				list.push({name: user, time: pretty(a.time),
+							times: _.map(a.times, pretty).join(', ')});
 			}
 		}
 
