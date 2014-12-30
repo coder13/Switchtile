@@ -144,7 +144,7 @@ server.route({
 		var r = addUser(username, password);
 
 		if (r) {
-			logger.info('Creating user: %s', username);
+			logger.info('Creating user: %s at %s', username, request.raw.req.connection.remoteAddress);
 			reply(true);
 		} else {
 			var v = validate(username, password);
