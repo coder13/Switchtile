@@ -192,8 +192,14 @@ $(document).ready(function () {
         <tr>
             <th id="thPlace" width="40px">#</th>
             <th id="thName" width="15%">Name</th>
-            <th id="thAverage" width="200px">Single</th>
-            <th id="thDetails">Details</th>
+            <th id="thAverage" width="150px">Single</th>
+            <th id="thDetails" width="150px">Details</th>
+            {{#if isSingle}}
+            <th></th>
+            {{else}}
+            <th id="thTimes">times</th>
+            {{/if}}
+
         </tr>
         {{#each single}}
         <tr class="{{highlight @index}}">
@@ -202,7 +208,15 @@ $(document).ready(function () {
             <td>{{time}}</td>
             <td>
             {{#if details}}
-                {{details.moves}} moves at {{details.mps}} moves/sec; {{details.mpp}} moves per piece.
+                {{details.moves}} moves at {{details.mps}} moves/sec; 
+                {{#if details.mpp}}
+                    {{details.mpp}} moves per piece.
+                {{/if}}
+            {{/if}}
+            {{#if times}}
+            <td>{{times}}</td>
+            {{else}}
+            <td><td>
             {{/if}}
         </td>
         </tr>
@@ -215,7 +229,7 @@ $(document).ready(function () {
         <tr>
             <th id="thPlace" width="40px">#</th>
             <th id="thName" width="15%">Name</th>
-            <th id="thAverage" width="200px">Average</th>
+            <th id="thAverage" width="150">Average</th>
             <th id="thTimes">Times</th>
         </tr>
         {{#each avg5}}
@@ -234,7 +248,7 @@ $(document).ready(function () {
         <tr>
             <th id="thPlace" width="40px">#</th>
             <th id="thName" width="15%">Name</th>
-            <th id="thAverage" width="200px">Average</th>
+            <th id="thAverage" width="150">Average</th>
             <th id="thTimes">Times</th>
         </tr>
         {{#each avg12}}
@@ -253,7 +267,7 @@ $(document).ready(function () {
         <tr>
             <th id="thPlace" width="40px">#</th>
             <th id="thName" width="15%">Name</th>
-            <th id="thAverage" width="200px">Average</th>
+            <th id="thAverage" width="150">Average</th>
             <th id="thTimes">Times</th>
         </tr>
         {{#each avg100}}

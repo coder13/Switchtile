@@ -8,6 +8,8 @@ var fs = require('fs'),
 	users = {},
 	times = {};
 
+
+
 var logger = new(winston.Logger)({
 	transports: [
 		new(winston.transports.Console)({ // console output
@@ -181,8 +183,9 @@ server.route({
 	method: "POST",
 	handler: function(request, reply) {
 		var data = request.payload;
+		console.log(data);
 		if (validate(data.user.name, data.user.password)) {
-			addTime(request.params.name, data.size, +data.time, +data.moves);
+			addTime(data.user.name, data.size, +data.time, +data.moves, data.times);
 
 			reply(users[request.params.name].best[data.size]);
 		} else {
@@ -196,7 +199,9 @@ server.route({
 	method: "GET",
 	handler: function(request, reply) {
 		var size = request.query.size || 3;
+		console.log(genTop(size, 'single'), !(size.indexOf(',') == 1 || size.indexOf('*') == 1));
 		context = {
+			isSingle: !(size.indexOf(',') == 1 || size.indexOf('*') == 1),
 			single: genTop(size, 'single'),
 			avg5: genTop(size, 5),
 			avg12: genTop(size, 12),
@@ -219,8 +224,10 @@ server.start(function() {
 //users
 
 function validate(username, password) {
-	return passwordHash.verify(password, users[username].password);
-	// return users[username].password === password;
+	if (!users[username].password)
+		return false;
+	else
+		return passwordHash.verify(password, users[username].password);
 }
 
 function addUser(username, password) {
@@ -251,7 +258,8 @@ function getTimes(username) {
 }
 
 // add time for size. If size doesn't exist, make it
-function addTime(name, size, time, moves) {
+function addTime(name, size, time, moves, times) {
+	// console.log(name, size, time, moves);
 	userTimes = getTimes(name);
 	if (!userTimes)
 		return;
@@ -263,10 +271,18 @@ function addTime(name, size, time, moves) {
 	userTimes[size] = userTimes[size].slice(userTimes[size].length - 100);
 
 	if (isBest(name, size, 'single', time)) {
-		setBest(name, size, 'single', {
-			time: time,
-			details: getDetails(time, size, moves)
-		});
+		if (times)
+			setBest(name, size, 'single', {
+				time: time,
+				details: getDetails(time, size, moves),
+				times: times
+			});
+		else
+			setBest(name, size, 'single', {
+				time: time,
+				details: getDetails(time, size, moves)
+			});
+		
 	}
 	calculateBest(name, size, false);
 }
@@ -307,9 +323,9 @@ function calculateBest(name, size, calculateSingle) {
 
 	for (i = 0; i < avgLengths.length; i++) {
 		len = avgLengths[i];
-		if (userTimes[size].length >= len) {	
+		if (userTimes[size].length >= len) {
 			for (j = 0; j <= userTimes[size].length - len; j++) {
-				var avg = getAvg(userTimes[size].slice(j, len + j), size);
+				var avg = getAvg(userTimes[size].slice(j, len + j));
 				if (!user.best[size][len]) {
 					user.best[size][len] = avg;
 				} else if (j === 0 || avg.time < user.best[size][len].time) {
@@ -374,7 +390,7 @@ function pretty(time) {
 	}
 }
 
-function getAvg(list, size) {
+function getAvg(list) {
 	var max = 0,
 		min = 0;
 	var sum = list[0];
@@ -409,26 +425,16 @@ function genTop(size, avg) {
 		}
 
 		if (entry) {
-			if (avg == 'single') {
+			var e = {name: user, time: pretty(entry.time)};
 
-				if (entry.details && Object.keys(entry.details).length != 0)
-					list.push({
-						name: user,
-						time: pretty(entry.time),
-						details: entry.details
-					});
-				else
-					list.push({
-						name: user,
-						time: pretty(entry.time)
-					});
-			} else {
-				list.push({
-					name: user,
-					time: pretty(entry.time),
-					times: _.map(entry.times, pretty).join(', ')
-				});
+			if (entry.details && Object.keys(entry.details).length !== 0) {
+				e.details = entry.details;
 			}
+
+			if (entry.times) {
+				e.times = _.map(entry.times, pretty).join(', ');
+			}
+			list.push(e);
 		}
 
 	}
