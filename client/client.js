@@ -7,28 +7,27 @@
 document.addEventListener("touchmove", function(e){e.preventDefault();}, false);
 
 var username = null, password = null;
-var pEvent = "single";
+var pEvent = "single", ev = "3";
 var cnt = 0; // move count
 var times = {}, best = {};
 var avgLengths = [5,12,100];
 var bestAverages = [[],[],[]]; // best of 5, 12, 100
 var nCurrent, nTotal; // for marathon and relay
-var startTime;
-var curTime;
-var timerID;
+var startTime, curTime, lapTime,
+    timerID;
 var started = false;
 var solving = false;
 var dragging = false;
-var relayData = "3,4,5", relayArr = [3,4,5];
+var relayData = "3,4,5", relayArr = [3,4,5], marathonLength;
+var marathonTimes, relayTimes;
 
 var dragStartX, dragStartY;
 var currentX, currentY;
 var context;
 var canvas;
-var cwidth = 300,
-    cheight= 300; // size of canvas
+var cwidth = 300, cheight= 300; // size of canvas
 
-var n = 3;
+var size = 3;
 var squares;
 var solved;
 var colors = ['white','white','#FF6','white','#48C','white','#5F8','white','#222','white'];
@@ -36,6 +35,20 @@ var colors = ['white','white','#FF6','white','#48C','white','#5F8','white','#222
 var browser = getBrowser(); // only want to call this once
 
 loadCSS();
+
+if (!String.prototype.format) {
+    String.prototype.format = function() {
+        var str = this.toString();
+        if (!arguments.length)
+            return str;
+        var arg = typeof arguments[0],
+            args = (("string" == arg || "number" == arg) ? arguments : arguments[0]);
+        for (arg in args)
+            str = str.replace(RegExp("\\{" + arg + "\\}", "gi"), args[arg]);
+        return str;
+    };
+}
+toDec = function(i){return parseInt(i,10);};
 
 $(document).ready(function () {
     $('#loginButton').prop('disabled', true);
@@ -102,35 +115,32 @@ function init() {
     window.onkeydown = function(event){doKey(event);};
 
     loadStuff();
-    document.bgColor = 'black';
-    document.fgColor = 'white';
+    // document.bgColor = 'black';
+    // document.fgColor = 'white';
     changedEvent(false);
-    changedHideStats();
+    // changedHideStats();
     loadAll();
 }
- 
+
 function loadAll() {
-    document.getElementById('sizeText').value = n;
-    document.getElementById('moves').innerHTML = "";
-    document.getElementById('relayText').value = relayData;
-    document.getElementById('zoomText').value = cwidth;
+    console.log('event:', pEvent);
     showProgress();
- 
+
     canvas = document.getElementById('c');
     context = canvas.getContext('2d');
     canvas.height = cheight;
     canvas.width = cwidth;
     document.getElementById('cube').height = cheight;
     document.getElementById('cube').width = cwidth;
- 
+
     solved = solvedSquares();
     squares = solvedSquares();
- 
+
     drawScreen();
     cnt = 0;
     saveStuff();
-    displayTimes(true, 0);
-     
+    displayTimes(ev, false);
+
     canvas.addEventListener("touchstart", mouseDownListener, false);
     canvas.addEventListener("mousedown", mouseDownListener, false);
     canvas.addEventListener("mousemove", mouseMoveListener, false);
@@ -151,7 +161,7 @@ function mouseDownListener(evt) {
         dragStartX = (evt.changedTouches[0].pageX - bRect.left)*(canvas.width/bRect.width);
         dragStartY = (evt.changedTouches[0].pageY - bRect.top)*(canvas.height/bRect.height);
     }
-  
+
     dragging = true;
 
     //code below prevents the mouse down from having an effect on the main browser window:
@@ -167,7 +177,7 @@ function mouseDownListener(evt) {
 function mouseUpListener(evt) {
     if (dragging) {
         dragging = false;
-  
+
         // a drag is finished - get the ending position
         var bRect = canvas.getBoundingClientRect();
         var w = canvas.width, h = canvas.height;
@@ -179,14 +189,14 @@ function mouseUpListener(evt) {
             dragEndX = (evt.changedTouches[0].pageX - bRect.left)*(canvas.width/bRect.width);
             dragEndY = (evt.changedTouches[0].pageY - bRect.top)*(canvas.height/bRect.height);
         }
-  
+
         // get position of starting cell
         var s = Math.min(w,h);
         var wgap = (w - s)/2;
         var hgap = (h - s)/2;
-        var startX = Math.floor((dragStartX - wgap) * (n/s));
-        var startY = Math.floor((dragStartY - hgap) * (n/s));
-        if (startX < 0 || startY < 0 || startX >= n || startY >= n)
+        var startX = Math.floor((dragStartX - wgap) * (size/s));
+        var startY = Math.floor((dragStartY - hgap) * (size/s));
+        if (startX < 0 || startY < 0 || startX >= size || startY >= size)
             return;
 
         // determined direction
@@ -213,8 +223,8 @@ function mouseMoveListener(evt) {
 
     currentX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
     currentY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
-    currentX = Math.floor((currentX - wgap) * (n/s));
-    currentY = Math.floor((currentY - hgap) * (n/s));
+    currentX = Math.floor((currentX - wgap) * (size/s));
+    currentY = Math.floor((currentY - hgap) * (size/s));
 }
 
 function pressSpacebar(casual) {
@@ -224,7 +234,7 @@ function pressSpacebar(casual) {
         }
     } else {
         if (pEvent == "relay") {
-            n = relayArr[0];
+            size = relayArr[0];
             loadAll();
         }
         nCurrent = 0;
@@ -246,7 +256,7 @@ function pressEscape() {
 }
 
 function changedZoom() {
-    var newZoom = parseInt(document.getElementById('zoomText').value);
+    var newZoom = parseInt(document.getElementById('zoomText').value, 10);
     changeDimensions(newZoom, newZoom);
     saveStuff();
 }
@@ -291,9 +301,9 @@ function doKey(e) {
         if (shift)
             doMove(1, currentX, true);
     } else if (keyCode == 87) {
-        doMove(2, currentX, true); // up  
+        doMove(2, currentX, true); // up
         if (shift)
-            doMove(2, currentX, true); // up  
+            doMove(2, currentX, true); // up
     } else if (keyCode == 65) {
         doMove(3, currentY, true); // left
         if (shift)
@@ -307,28 +317,28 @@ function doKey(e) {
 
     //+ - for cube size
     else if (!shift && (keyCode == 107 || keyCode == 61 || ((browser == "Chrome" || browser == "IE") && keyCode == 187)))
-        changeN(n+1);
-    else if (!shift && n>2 && (keyCode == 109 || keyCode == 173 || ((browser == "Chrome" || browser == "IE") && keyCode == 189)))
-        changeN(n-1);
+        changeN(size+1);
+    else if (!shift && size>2 && (keyCode == 109 || keyCode == 173 || ((browser == "Chrome" || browser == "IE") && keyCode == 189)))
+        changeN(size-1);
 
     //shift + - for square size
     else if (shift && (keyCode == 107 || keyCode == 61 || ((browser == "Chrome" || browser == "IE") && keyCode == 187)))
-        changeDimensions(parseInt(cwidth) + 20, parseInt(cwidth) + 20);
+        changeDimensions(parseInt(cwidth, 10) + 20, parseInt(cwidth, 10) + 20);
     else if (shift && (keyCode == 109 || keyCode == 173 || ((browser == "Chrome" || browser == "IE") && keyCode == 189)))
-        changeDimensions(parseInt(cwidth) - 20, parseInt(cwidth) - 20);
- 
+        changeDimensions(parseInt(cwidth, 10) - 20, parseInt(cwidth, 10) - 20);
+
     //< > for marathon length
-    else if (keyCode == 188 && shift && nTotal>1 && pEvent=="marathon") {
-        nTotal--; showProgress();
+    else if (keyCode == 188 && shift && marathonLength>1 && pEvent=="marathon") {
+        marathonLength--; showProgress();
     } else if (keyCode == 190 && shift && pEvent=="marathon") {
-        nTotal++; showProgress();
+        marathonLength++; showProgress();
     }
 
     //escape to reset
     else if (keyCode == 27) {
         pressEscape();
     }
-    
+
 
     }
 
@@ -342,11 +352,16 @@ function finishSolve() {
     } else if (pEvent == "marathon") {
         nCurrent++;
         showProgress();
-        if (nCurrent >= nTotal) {
+        if (nCurrent >= marathonLength) {
+            curTime = new Date();
+            marathonTimes.push(curTime.getTime() - lapTime.getTime());
             stopTimer(true);
             started = false;
             solving = false;
         } else {
+            curTime = new Date();
+            marathonTimes.push(curTime.getTime() - lapTime.getTime());
+            lapTime = curTime;
             scramble();
             started = true;
             solving = true;
@@ -355,12 +370,17 @@ function finishSolve() {
         nCurrent++;
         showProgress();
         if (nCurrent < nTotal) {
-            n = relayArr[nCurrent];
+            curTime = new Date();
+            relayTimes.push(curTime.getTime() - lapTime.getTime());
+            size = relayArr[nCurrent];
             loadAll();
             scramble();
             started = true;
             solving = true;
         } else {
+            curTime = new Date();
+            relayTimes.push(curTime.getTime() - lapTime.getTime());
+            lapTime = curTime;
             stopTimer(true);
             started = false;
             solving = false;
@@ -371,12 +391,14 @@ function finishSolve() {
 
 function reset() {
     if (pEvent == "relay") {
-        n = relayArr[relayArr.length - 1];
+        size = relayArr[relayArr.length - 1];
     }
+    $('#time, #movses, #times').html('');
     showProgress();
     nCurrent = 0;
-    if (solving)
-        clearTimes();
+    if (solving) {
+
+    }
     stopTimer(false);
     solving = false;
     started = false;
@@ -384,62 +406,90 @@ function reset() {
     saveStuff();
 }
 
-function changedEvent(clearTimes) {
-    var obj = document.getElementById('pEvent');
-    pEvent = obj.options[obj.selectedIndex].value;
-    if (pEvent=="marathon") {
+function changedEvent(update) {
+    if (update){
+        var obj = document.getElementById('pEvent');
+        pEvent = obj.options[obj.selectedIndex].value;
+    }
+    if (pEvent == 'marathon') {
         nCurrent = 0;
-        nTotal = 42; // default
-    } else if (pEvent=="relay") {
+        marathonLength = +$("#marathonText").val() || 3; // default
+
+        $('#relaydata').hide();
+        $('#marathondata').show();
+        $('#size').show();
+    } else if (pEvent == 'relay') {
         // parse relayData
-        relayData = document.getElementById('relayText').value.split(/,| /);
-        relayArr = [];
-        for (i = 0; i < relayData.length; i++) {
-            var solv = parseInt(relayData[i]);
-            if (solv >= 2 && solv <= 1000) {
-                relayArr.push(solv);
+        if (update) {
+            if ($('#relayText')[0].value){
+                relayData = $('#relayText')[0].value;
+            } else {
+                relayData = '3,4,5';
             }
+            relayArr = _.map(relayData.split(','), toDec);
+            if (relayArr.length === 0) relayArr = [3];
         }
-        if (relayArr.length === 0) relayArr = [3];
+
         nCurrent = 0;
         nTotal = relayArr.length;
-        n = relayArr[relayArr.length - 1];
+        size = relayArr[relayArr.length - 1];
+
+        $('#relaydata').show();
+        $('#marathondata').hide();
+        $('#size').hide();
+    } else if(pEvent == 'single') {
+        if (update) {
+            if ($('#sizeText').val() && $('#sizeText').val() !== "")
+                size = $('#sizeText').val();
+            else
+                $('#sizeText').val(size);
+        } else {
+            $('#sizeText').val(size);
+        }
+        $('#relaydata').hide();
+        $('#marathondata').hide();
+        $('#size').show();
     }
-    if (clearTimes)
-        clearTimes();
-    document.getElementById('relaydata').style.display = (pEvent=="relay") ? "" : "none";
+
+    ev = getEvent();
+    reset();
+    loadAll();
+    displayTimes(ev, false);
     saveStuff();
 }
 
-function changedHideStats() {
-    document.getElementById('stats').style.display = (document.getElementById('hideStats').checked) ? "none" : "";
-    saveStuff();
-}
+// function changedHideStats() {
+//     document.getElementById('stats').style.display = (document.getElementById('hideStats').checked) ? "none" : "";
+//     saveStuff();
+// }
 
 function changedSize() {
-    var newSize = parseInt(document.getElementById('sizeText').value);
+    var newSize = +$('#sizeText').val();
+    console.log(newSize);
     changeN(newSize);
     saveStuff();
+
 }
 
-function changeN(newN) {
+function changeN(newSize) {
     if(solving) {
         var agree = confirm("Are you SURE? This will stop the timer!");
         if (!agree)
             return;
     }
-    if (newN < 2)
-        newn = 2;
-    if (newN == n)
-        return;
- 
-    stopTimer(false);
-    solving = false;
-    n = newN;
-    if (pEvent == "relay")
-        nTotal = relayArr.length;
-    loadAll();
-    saveStuff();
+    if (!isNaN(newSize) && newSize >= 2 && newSize <= 999 && newSize != size){
+        stopTimer(false);
+        solving = false;
+        size = newSize;
+        ev = getEvent();
+        if (pEvent == "relay")
+            nTotal = relayArr.length;
+        reset();
+        displayTimes(ev, false);
+        saveStuff();
+    } else {
+        $('#sizeText').val(size);
+    }
 }
 
 function changeDimensions(newWidth, newHeight) {
@@ -459,7 +509,7 @@ function showProgress() {
     if (pEvent == "single") {
         document.getElementById('progress').innerHTML = "";
     } else if (pEvent == "marathon") {
-        document.getElementById('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
+        document.getElementById('progress').innerHTML = nCurrent + "/" + marathonLength + " puzzle" + (marathonLength==1?"":"s");
     } else if (pEvent == "relay") {
         document.getElementById('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
     }
@@ -474,24 +524,24 @@ function drawScreen() {
     var w = canvas.width, h = canvas.height;
     context.fillStyle = "#999";
     context.fillRect(0, 0, w, h);
- 
+
     var s = Math.min(w,h);
     var wgap = (w - s)/2;
     var hgap = (h - s)/2;
- 
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            drawTile(squares[i][j], wgap + s * j / n, hgap + s * i / n,
-                wgap + s * (j+1) / n, hgap + s * (i+1) / n);
+
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            drawTile(squares[i][j], wgap + s * j / size, hgap + s * i / size,
+                wgap + s * (j+1) / size, hgap + s * (i+1) / size);
         }
     }
 }
- 
+
 // draw one tile on the screen
 // color = what type of tile it is, x1/y1/x2/y2 = coordinates of square
 function drawTile(type, x1, y1, x2, y2) {
     context.strokeStyle = "#999";
-    context.lineWidth = Math.max(1, Math.min(cwidth, cheight)/(n*10));
+    context.lineWidth = Math.max(1, Math.min(cwidth, cheight)/(size*10));
     if (type == 2 || type == 4 || type == 6 || type == 8) {
         context.fillStyle = colors[type];
         context.fillRect(x1, y1, x2-x1, y2-y1);
@@ -515,7 +565,7 @@ function drawTile(type, x1, y1, x2, y2) {
     }
     context.strokeRect(x1, y1, x2-x1, y2-y1);
 }
- 
+
 // draw a triangle
 // fillColor = color of triangle, x1/y1/x2/y2/x3/y3 = vertices
 function drawTriangle(fillColor, x1, y1, x2, y2, x3, y3) {
@@ -531,37 +581,37 @@ function drawTriangle(fillColor, x1, y1, x2, y2, x3, y3) {
 /******************
  * PUZZLE DETAILS *
  ******************/
- 
+
 // do a move
 // direction = 0/1/2/3 (right/down/up/left), layer = layer from top/left (0 to n-1)
 function doMove(direction, layer, redraw) {
     if (direction === 0) { // right
-        var tmp = squares[layer][n-1];
-        for (i=n-1; i>0; i--) {
+        var tmp = squares[layer][size-1];
+        for (i=size-1; i>0; i--) {
             squares[layer][i] = squares[layer][i-1];
         }
         squares[layer][0] = tmp;
     } else if (direction == 1) { // down
-        var tmp = squares[n-1][layer];
-        for (i=n-1; i>0; i--) {
+        var tmp = squares[size-1][layer];
+        for (i=size-1; i>0; i--) {
             squares[i][layer] = squares[i-1][layer];
         }
         squares[0][layer] = tmp;
     } else if (direction == 2) { // up
         var tmp = squares[0][layer];
-        for (i=0; i<n-1; i++) {
+        for (i=0; i<size-1; i++) {
             squares[i][layer] = squares[i+1][layer];
         }
-        squares[n-1][layer] = tmp;
+        squares[size-1][layer] = tmp;
     } else { // left
         var tmp = squares[layer][0];
-        for (i=0; i<n-1; i++) {
+        for (i=0; i<size-1; i++) {
             squares[layer][i] = squares[layer][i+1];
         }
-        squares[layer][n-1] = tmp;
+        squares[layer][size-1] = tmp;
     }
- 
-    if (redraw) 
+
+    if (redraw)
         drawScreen();
     if (redraw && solving) {
         cnt++;
@@ -571,9 +621,10 @@ function doMove(direction, layer, redraw) {
         }
     }
 }
- 
+
 // get a solved array
-function solvedSquares() {
+function solvedSquares(n) {
+    n = n || size;
     sqr = [];
     for (i=0; i<n; i++) {
         sqr[i] = [];
@@ -607,8 +658,8 @@ function solvedSquares() {
 
 // check if our position is solved
 function isSolved() {
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
             if (squares[i][j] != solved[i][j]) {
                 return false;
             }
@@ -617,27 +668,28 @@ function isSolved() {
     return true;
 }
 
-function scramble() {
+function scramble(n) {
+    n = n || size;
     do {
         // random permutation of pieces
         var nswaps = 0;
-        for (i=0; i<(n*n)-2; i++) {
-            var rand = i + Math.floor(Math.random() * (n*n - i));
+        for (i=0; i<(size*size)-2; i++) {
+            var rand = i + Math.floor(Math.random() * (size*size - i));
             if (rand != i) {
-                var i1 = i%n, rand1 = rand%n;
-                var i2 = (i-i1)/n, rand2 = (rand-rand1)/n;
+                var i1 = i%size, rand1 = rand%size;
+                var i2 = (i-i1)/size, rand2 = (rand-rand1)/size;
                 var tmp = squares[i2][i1];
                 squares[i2][i1] = squares[rand2][rand1];
                 squares[rand2][rand1] = tmp;
                 nswaps++;
             }
         }
-  
+
         // if n==3, make sure to have proper parity
-        if (n == 3 && nswaps % 2 == 1) {
-            var tmp = squares[n-1][n-2];
-            squares[n-1][n-2] = squares[n-1][n-1];
-            squares[n-1][n-1] = tmp;
+        if (size == 3 && nswaps % 2 == 1) {
+            var swap = squares[size-1][size-2];
+            squares[size-1][size-2] = squares[size-1][size-1];
+            squares[size-1][size-1] = swap;
         }
     } while (isSolved());
     drawScreen();
@@ -651,6 +703,11 @@ function startTimer() {
     if (!started) {
         started = true;
         startTime = new Date();
+        lapTime = new Date();
+        if (pEvent == 'relay')
+            relayTimes = [];
+        else if (pEvent == 'marathon')
+            marathonTimes = [];
         timerID = setInterval(updateTimer, 100);
     }
 }
@@ -681,55 +738,199 @@ function stopTimer(good) {
         clearInterval(timerID);
 
         if (good) { // store the time
-            // times[n][times.length] = time;
-            times[n].push(time);
-            // figure out averages and display
-            displayTimes(false, time);
+            var meta, ev = getEvent(), data = {
+                size: ev,
+                time: time,
+                moves: cnt,
+                user: {name: username, password: password}};
+            if (pEvent == 'single') {
+                data.moves = cnt;
+            } else if (pEvent == 'relay') {
+                data.times = relayTimes;
+            } else if (pEvent == 'marathon') {
+                data.times = marathonTimes;
+            }
 
-            if (username && username !== null && username !== 'null') {
-                data = {
-                    size: n,
-                    time: time,
-                    moves: cnt,
-                    user: {
-                        name: username,
-                        password: password
-                    }
-                };
+            console.log(ev, cnt, data.times);
+            if (!times[ev])
+                times[ev] = [time];
+            else
+                times[ev].push(time);
+            // figure out averages and display
+
+            if (username && username !== null && username !== 'null') { // connected to server
                 $.post("users/" + username, data, function (data) {
-                    // best[size] = data;
+                    best[size] = data;
+                    displayTimes(ev, {time: time, moves: cnt, times: relayTimes||marathonTimes});
                 }, 'json');
-                
+
+            } else { // local
+                calcBest(ev, false, {time: time, moves: cnt, times: data.times});
             }
         }
     }
 }
 
-function displayTimes(loadedPage, time) {
-    var v = "";
-    if (!times[n])
-        times[n] = [];
+function calcBest(ev, calculateSingle, currentTime) {
+    if (!best)
+            best = {};
 
-    // find min
-    if (times[n].length >= 1) {
+    if (!best[ev]) {
+        best[ev] = {};
+    }
+
+    if (calculateSingle) {
         var min = 0;
-        for (var i = 1; i < times[n].length; i++) {
+        for (i = 1; i < times[ev].length; i++) {
+            if (times[ev][i] < times[ev][min]) {
+                min = i;
+            }
+        }
+        best[ev].single = times[min];
+    }
+
+    for (i = 0; i < avgLengths.length; i++) {
+        len = avgLengths[i];
+        if (times[ev].length >= len) {
+            for (j = 0; j <= times[ev].length - len; j++) {
+                var avg = getAvg(times[ev].slice(j, len + j));
+                if (!best[ev][len]) {
+                    best[ev][len] = avg;
+                } else if (j === 0 || avg.time < best[ev][len].time) {
+                    best[ev][len] = avg;
+                }
+            }
+        
+        }
+    }
+}
+
+function getStats(n, currentTime) {
+    var stats = {size: n, current: {}, best: {}};
+
+    if (currentTime && best[n]) {
+        if (currentTime.time < best[n].single.time)
+            stats.best.single = currentTime;
+        else if (best[n].single)
+            stats.best.single = best[n].single;
+        else
+            console.log("ugh");
+    } else if (best[n] && best[n].single) {
+        stats.best.single = best[n].single;
+    } else if (times[n].length >= 1) {
+        var min = 0;
+        for (i = 1; i < times[n].length; i++) {
             if (times[n][i] < times[n][min])
                 min = i;
         }
-        v += "Best time: " + pretty(times[n][min]) + "<br>";
+        stats.best.single = times[n][min];
+    } else {
+        console.log("no single");
     }
-   
+
+    for (i = 0; i < avgLengths.length; i++) {
+        len = avgLengths[i];
+        if (times[n].length >= len) {
+            // current
+            avg = getAvg(times[n].slice(times[n].length - len));
+            stats.current[len] = avg;
+            // best
+            for (j = 0; j <= times[n].length - len; j++) {
+                var avg = getAvg(times[n].slice(j, len + j));
+                if (!stats.best[len]) {
+                    stats.best[len] = avg;
+                } else if (j === 0 || avg.time < stats.best[len].time) {
+                    stats.best[len] = avg;
+                }
+            }
+
+        }
+    }
+
+    return stats;
+}
+
+
+function formatStats(stats) {
+    var v = "";
+    if (stats.best.single){
+        var single = stats.best.single;
+        if (single)
+            v = "Best single: " + pretty(single.time || single);
+        if (single.details)
+            v += " ({moves} moves; {mps} mps;".format(single.details) +
+            (single.details.mpp ? single.details.mpp + " mpp":"") + ")";
+        if (single.times) {
+            v +=  " [" + _.map(single.times, pretty).join(', ') + "]";
+        }
+        v += "<br>";
+    }
+
+    for (var i in avgLengths) {
+        i = avgLengths[i];
+        if (stats.current[i] && stats.best[i]) {
+            v += "<br>Current avg{0}: {1} => {2}".format(i, _.map(stats.current[i].times, pretty).join(', '), pretty(stats.current[i].time));
+            v += "<br>Best avg{0}: {1} => {2}".format(i, _.map(stats.best[i].times, pretty).join(', '), pretty(stats.best[i].time)) + "<br>";
+        }
+    }
+
+    return v;
+}
+
+function displayTimes(ev, time) {
+    if (!times[ev]) {
+        times[ev] = [];
+        return;
+    }
+
+    stats = getStats(ev, time);
+    document.getElementById('stats').innerHTML = formatStats(stats);
+
+    if (time) {
+        console.log(time);
+        if (time.moves) {
+            details = getDetails(time.time, stats.size, time.moves);
+            $('#moves').html(details.moves + " moves at " +
+            details.mps + " moves/sec" + (details.mpp? details.mpp + " moves per piece":""));
+        }
+        if (time.times) {
+            $('#times').html(_.map(time.times, pretty).join(', '));
+        } else {
+            console.log(time);
+        }
+
+    } else {
+        $('#moves').html('');
+    }
+}
+
+function OlddisplayTimes(loadedPage, time) {
+    var v = "";
+    if (!times[ev])
+        times[ev] = [];
+
+
+
+    // find min
+    if (times[ev].length >= 1) {
+        var min = 0;
+        for (i = 1; i < times[ev].length; i++) {
+            if (times[ev][i] < times[ev][min])
+                min = i;
+        }
+        v += "Best time: " + pretty(times[ev][min]) + "<br>";
+    }
+
     for (var i = 0; i < avgLengths.length; i++) {
         var len = avgLengths[i];
-        if (times[n].length >= len) {
-            var avgData = getAvg(len, times[n].slice(times[n].length - len));
+        if (times[ev].length >= len) {
+            var avgData = getAvg(times[ev].slice(times[ev].length - len));
             v += "<br>Current avg" + len + ": " + (len<100?avgData[0]:pretty(avgData[1])) + "<br>";
             v += "Best avg" + len + ": ";
             if (loadedPage) {
                 // compute best average from scratch
-                for (j=0; j <= times[n].length-len; j++) {
-                        var thisAvg = getAvg(len, times[n].slice(j, len+j));
+                for (j=0; j <= times[ev].length-len; j++) {
+                        var thisAvg = getAvg(times[ev].slice(j, len+j));
                     if (j === 0 || thisAvg[1] < bestAverages[i][1]) {
                         bestAverages[i] = thisAvg;
                     }
@@ -741,7 +942,7 @@ function displayTimes(loadedPage, time) {
                 }
             } else {
                 // just compare avgData to best averages
-                if (times[n].length == len || avgData[1] < bestAverages[i][1]) {
+                if (times[ev].length == len || avgData[1] < bestAverages[i][1]) {
                     bestAverages[i] = avgData;
                 }
 
@@ -758,17 +959,26 @@ function displayTimes(loadedPage, time) {
     if (!loadedPage) {
         document.getElementById('moves').innerHTML = cnt + " moves at " +
         Math.round(100000*cnt/time)/100 + " moves/sec<br>" +
-        Math.round(1000*(cnt/(n*n)))/1000 + " moves per piece";
+        Math.round(1000*(cnt/(size*size)))/1000 + " moves per piece";
     } else {
         document.getElementById('moves').innerHTML = "";
     }
 }
 
-function getAvg(n, list) {
-    var max = 0;
-    var min = 0;
+function getDetails(time, size, moves) {
+    return {
+        moves: moves,
+        mps: Math.round(100000 * moves / time) / 100, // moves per second
+        mpp: Math.round(1000 * (moves / (size * size))) / 1000 // moves per piece
+    };
+}
+
+
+function getAvg(list) {
+    var max = 0,
+        min = 0;
     var sum = list[0];
-    for (var i=1; i<n; i++) {
+    for (var i = 1; i < list.length; i++) {
         if (list[i] > list[max])
             max = i;
         if (list[i] < list[min])
@@ -776,21 +986,14 @@ function getAvg(n, list) {
         sum += list[i];
     }
     sum = sum - list[min] - list[max];
-    var v = "";
-    for (var i = 0; i < n; i++) {
-        if (i == min || i == max) {
-            v += "(" + pretty(list[i]) + ") ";
-        } else {
-            v += pretty(list[i]) + " ";
-        }
-    }
-    var avg = sum/(n-2);
-    v += "=> " + pretty(avg);
-    return [v, avg];
+    return {
+        time: sum / (list.length - 2),
+        times: list
+    };
 }
 
 function clearTimes() {
-    times[n] = [];
+    times[ev] = [];
     document.getElementById('stats').innerHTML = "";
 }
 
@@ -800,38 +1003,50 @@ function clearTimes() {
 function saveStuff() {
     if (window.localStorage !== undefined) {
 
-        window.localStorage.setItem("switchtile_pEvent",pEvent);
+        window.localStorage.setItem("switchtile_pEvent", pEvent);
         if (username && username !== null && username !== 'null') {
             window.localStorage.setItem("username", username);
+            window.localStorage.setItem("password", password);
         }
         window.localStorage.setItem("switchtile_times", JSON.stringify(times));
-        window.localStorage.setItem("switchtile_relayData",relayData);
-        window.localStorage.setItem("switchtile_n",n);
-        window.localStorage.setItem("switchtile_zoom",cwidth);
+        window.localStorage.setItem("switchtile_best", JSON.stringify(best));
+        window.localStorage.setItem("switchtile_relayData", relayData);
+        window.localStorage.setItem("switchtile_marathonData", marathonLength);
+        window.localStorage.setItem("switchtile_size", size);
+        window.localStorage.setItem("switchtile_zoom", cwidth);
     }
 }
 
 function loadStuff() {
     if (window.localStorage !== undefined) {
-        var tmp = window.localStorage.getItem("switchtile_pEvent");
-        if (tmp !== null)
-            pEvent = tmp;
+        pEvent = window.localStorage.getItem("switchtile_pEvent");
+        $("#pEvent").val(pEvent);
+        size = window.localStorage.getItem("switchtile_size");
+        if (!size || size === null || typeof size != "number" || size < 2 || size > 999)
+            size = 3;
+        console.log(size);
+        $("#sizeText").val(size);
+            
+        
+        ev = getEvent();
 
         getTimes();
 
-        tmp = window.localStorage.getItem("switchtile_relayData");
-        if (tmp !== null)
-            relayData = tmp;
-        tmp = window.localStorage.getItem("switchtile_n");
-        if (tmp !== null)
-            n = parseInt(tmp, 10);
-        if (n < 2)
-            n = 2;
-        tmp = window.localStorage.getItem("switchtile_zoom");
-        if (tmp !== null) {
-            cwidth = parseInt(tmp, 10);
-            cheight = parseInt(tmp, 10);
+        relayData = window.localStorage.getItem("switchtile_relayData") || relayData;
+        relayArr = _.map(relayData.split(','), toDec);
+        console.log(relayData);
+        $('#relayText').val(relayData);
+
+        marathonLength = window.localStorage.getItem("switchtile_marathonData") || 3;
+        console.log(marathonLength);
+        $('#marathonText').val(marathonLength);
+
+        zoom = window.localStorage.getItem("switchtile_zoom");
+        if (zoom !== null) {
+            cwidth = parseInt(zoom, 10);
+            cheight = parseInt(zoom, 10);
         }
+        $('#zoomText').val(zoom);
     }
 }
 
@@ -839,13 +1054,24 @@ function getTimes() {
     if (username && username !== null && username !== 'null') {
         $.getJSON("users/" + username, function(data) {
             times = data.times;
-            best = data.best;
-            console.log(data);
-            displayTimes(true);
+            best = data.pbs;
+            console.log('times: ', data);
+            displayTimes(ev);
         });
     } else {
-        times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {n:[]};
-        best = JSON.parse(window.localStorage.getItem('switchtile_best')) || {};
+        times = JSON.parse(window.localStorage.getItem("switchtile_times")) || {ev:[]};
+        best = JSON.parse(window.localStorage.getItem('switchtile_best')) || {ev:[]};
+    }
+}
+
+function getEvent() {
+    switch (pEvent) {
+        case "single":
+            return size;
+        case "marathon":
+            return size + "*" + marathonLength;
+        case "relay":
+            return relayData;
     }
 }
 
