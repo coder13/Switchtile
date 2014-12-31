@@ -183,7 +183,6 @@ server.route({
 	method: "POST",
 	handler: function(request, reply) {
 		var data = request.payload;
-		console.log(data);
 		if (validate(data.user.name, data.user.password)) {
 			addTime(data.user.name, data.size, +data.time, +data.moves, data.times);
 
@@ -199,7 +198,6 @@ server.route({
 	method: "GET",
 	handler: function(request, reply) {
 		var size = request.query.size || 3;
-		console.log(genTop(size, 'single'), !(size.indexOf(',') == 1 || size.indexOf('*') == 1));
 		context = {
 			isSingle: !(size.indexOf(',') == 1 || size.indexOf('*') == 1),
 			single: genTop(size, 'single'),
@@ -259,7 +257,6 @@ function getTimes(username) {
 
 // add time for size. If size doesn't exist, make it
 function addTime(name, size, time, moves, times) {
-	// console.log(name, size, time, moves);
 	userTimes = getTimes(name);
 	if (!userTimes)
 		return;
