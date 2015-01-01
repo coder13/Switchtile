@@ -372,6 +372,7 @@ function finishSolve() {
         if (nCurrent < nTotal) {
             curTime = new Date();
             relayTimes.push(curTime.getTime() - lapTime.getTime());
+	    lapTime = curTime;
             size = relayArr[nCurrent];
             loadAll();
             scramble();
@@ -380,7 +381,6 @@ function finishSolve() {
         } else {
             curTime = new Date();
             relayTimes.push(curTime.getTime() - lapTime.getTime());
-            lapTime = curTime;
             stopTimer(true);
             started = false;
             solving = false;
