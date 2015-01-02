@@ -632,11 +632,13 @@ function doMove(direction, layer, redraw) {
 
     if (redraw)
         drawScreen();
-    if (redraw && solving && pEvent != "blind") {
+    if (redraw && solving) {
         cnt++;
-        startTimer();
-        if (isSolved()) {
-            finishSolve();
+        if (pEvent != "blind") {
+            startTimer();
+            if (isSolved()) {
+                finishSolve();
+            }
         }
     }
 }
