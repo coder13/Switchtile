@@ -377,6 +377,7 @@ function finishSolve() {
         if (nCurrent < nTotal) {
             curTime = new Date();
             relayTimes.push(curTime.getTime() - lapTime.getTime());
+            lapTime = curTime;
             size = relayArr[nCurrent];
             loadAll();
             scramble();
@@ -385,7 +386,6 @@ function finishSolve() {
         } else {
             curTime = new Date();
             relayTimes.push(curTime.getTime() - lapTime.getTime());
-            lapTime = curTime;
             stopTimer(true);
             started = false;
             solving = false;
@@ -790,7 +790,7 @@ function stopTimer(good) {
                 calcBest(ev, false, {time: time, moves: cnt, times: data.times});
             }
         } else {
-            displayTimes(ev, {time: time, moves: cnt, times: relayTimes||marathonTimes||memoTimes});
+            displayTimes(ev, {time: time, moves: cnt, times: data.times}, false);
             
         }
     }
@@ -898,15 +898,13 @@ function formatStats(stats) {
     return v;
 }
 
-function displayTimes(ev, time) {
+function displayTimes(ev, time, good) {
     if (!times[ev]) {
         times[ev] = [];
         return;
     }
 
-    console.log(ev, time);
-
-    stats = getStats(ev, time);
+    stats = getStats(ev);
     document.getElementById('stats').innerHTML = formatStats(stats);
 
     if (time) {
