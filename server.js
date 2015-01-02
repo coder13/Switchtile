@@ -199,7 +199,7 @@ server.route({
 	handler: function(request, reply) {
 		var size = request.query.size || 3;
 		context = {
-			isSingle: !(size.indexOf(',') == 1 || size.indexOf('*') == 1),
+			isSingle: !(size.indexOf(',') != -1 || size.indexOf('*') != -1 || size.indexOf('bld') != -1),
 			single: genTop(size, 'single'),
 			avg5: genTop(size, 5),
 			avg12: genTop(size, 12),
@@ -265,8 +265,7 @@ function addTime(name, size, time, moves, times) {
 	} else {
 		userTimes[size] = userTimes[size].concat(time);
 	}
-	userTimes[size] = userTimes[size].slice(-100);
-
+	userTimes[size] = userTimes[size].slice(-120);
 	if (isBest(name, size, 'single', time)) {
 		if (times)
 			setBest(name, size, 'single', {
