@@ -13,10 +13,9 @@ var times = {}, best = {};
 var avgLengths = [5,12,100];
 var bestAverages = [[],[],[]]; // best of 5, 12, 100
 var nCurrent, nTotal; // for marathon and relay
-var startTime, curTime, lapTime,
+var startTime, curTime, lapTime, memoTime,
     timerID;
-var started = false;
-var solving = false;
+var started = false, solving = false, memoing = false;
 var dragging = false;
 var relayData = "3,4,5", relayArr = [3,4,5], marathonLength;
 var marathonTimes, relayTimes;
@@ -59,7 +58,7 @@ $(document).ready(function () {
 
     if (username && username !== null && username !== 'null' &&
         password && password !== null && password !== 'null') {
-        console.log(username, password);
+        console.log('logging in as:', username, password);
         $('#loginform').hide();
         $('#logout').show();
         $.post("login", {username: username, password: password}, function (data) {
@@ -123,7 +122,6 @@ function init() {
 }
 
 function loadAll() {
-    console.log('event:', pEvent);
     showProgress();
 
     canvas = document.getElementById('c');
@@ -229,7 +227,7 @@ function mouseMoveListener(evt) {
 
 function pressSpacebar(casual) {
     if (solving) {
-        if (isSolved()) {
+        if (isSolved() || pEvent == "blind") {
             finishSolve();
         }
     } else {
@@ -243,6 +241,8 @@ function pressSpacebar(casual) {
         cnt = 0;
         started = casual;
         solving = !casual;
+        if (pEvent == "blind")
+            startTimer();
     }
 }
 
@@ -348,7 +348,12 @@ function finishSolve() {
     if (pEvent == "single") {
         stopTimer(true);
         started = false;
+    } else if (pEvent == "blind") {
+        stopTimer(isSolved());
+        started = false;
         solving = false;
+
+        drawScreen();
     } else if (pEvent == "marathon") {
         nCurrent++;
         showProgress();
@@ -437,7 +442,7 @@ function changedEvent(update) {
         $('#relaydata').show();
         $('#marathondata').hide();
         $('#size').hide();
-    } else if(pEvent == 'single') {
+    } else if(pEvent == 'single' || pEvent == 'blind') {
         if (update) {
             if ($('#sizeText').val() && $('#sizeText').val() !== "")
                 size = $('#sizeText').val();
@@ -465,7 +470,6 @@ function changedEvent(update) {
 
 function changedSize() {
     var newSize = +$('#sizeText').val();
-    console.log(newSize);
     changeN(newSize);
     saveStuff();
 
@@ -507,11 +511,17 @@ function changeDimensions(newWidth, newHeight) {
 
 function showProgress() {
     if (pEvent == "single") {
-        document.getElementById('progress').innerHTML = "";
+        // document.getElementById('progress').innerHTML = "";
+        $('#progress').text('');
     } else if (pEvent == "marathon") {
         document.getElementById('progress').innerHTML = nCurrent + "/" + marathonLength + " puzzle" + (marathonLength==1?"":"s");
     } else if (pEvent == "relay") {
         document.getElementById('progress').innerHTML = nCurrent + "/" + nTotal + " puzzle" + (nTotal==1?"":"s");
+    } else if (pEvent == "blind") {
+        if (memoing)
+            $("#progress").text('memoing');
+        if (solving)
+            $("#progress").text('solving');
     }
 }
 
@@ -542,7 +552,10 @@ function drawScreen() {
 function drawTile(type, x1, y1, x2, y2) {
     context.strokeStyle = "#999";
     context.lineWidth = Math.max(1, Math.min(cwidth, cheight)/(size*10));
-    if (type == 2 || type == 4 || type == 6 || type == 8) {
+    if (pEvent == "blind" && !memoing && started) {
+        context.fillStyle = '#000000';
+        context.fillRect(x1, y1, x2-x1, y2-y1);
+    } else if (type == 2 || type == 4 || type == 6 || type == 8) {
         context.fillStyle = colors[type];
         context.fillRect(x1, y1, x2-x1, y2-y1);
     } else if (type == 1) {
@@ -585,6 +598,12 @@ function drawTriangle(fillColor, x1, y1, x2, y2, x3, y3) {
 // do a move
 // direction = 0/1/2/3 (right/down/up/left), layer = layer from top/left (0 to n-1)
 function doMove(direction, layer, redraw) {
+    if (pEvent == "blind" && memoing) {
+        curTime = new Date();
+        memoTime = curTime.getTime()-startTime;
+        memoing = false;
+    }
+
     if (direction === 0) { // right
         var tmp = squares[layer][size-1];
         for (i=size-1; i>0; i--) {
@@ -613,7 +632,7 @@ function doMove(direction, layer, redraw) {
 
     if (redraw)
         drawScreen();
-    if (redraw && solving) {
+    if (redraw && solving && pEvent != "blind") {
         cnt++;
         startTimer();
         if (isSolved()) {
@@ -708,6 +727,8 @@ function startTimer() {
             relayTimes = [];
         else if (pEvent == 'marathon')
             marathonTimes = [];
+        else if (pEvent == "blind")
+            memoing = true;
         timerID = setInterval(updateTimer, 100);
     }
 }
@@ -737,21 +758,22 @@ function stopTimer(good) {
         document.getElementById('time').innerHTML = pretty(time) + (good ? "" : "*");
         clearInterval(timerID);
 
-        if (good) { // store the time
-            var meta, ev = getEvent(), data = {
-                size: ev,
-                time: time,
-                moves: cnt,
-                user: {name: username, password: password}};
-            if (pEvent == 'single') {
-                data.moves = cnt;
-            } else if (pEvent == 'relay') {
-                data.times = relayTimes;
-            } else if (pEvent == 'marathon') {
-                data.times = marathonTimes;
-            }
+        var meta, ev = getEvent(), data = {
+            size: ev,
+            time: time,
+            moves: cnt,
+            user: {name: username, password: password}}, memoTimes;
+        if (pEvent == 'relay') {
+            data.times = relayTimes;
+        } else if (pEvent == 'marathon') {
+            data.times = marathonTimes;
+        } else if (pEvent == 'blind') {
+            memoTimes = [memoTime, time-memoTime];
+            console.log(memoTimes);
+            data.times = memoTimes;
+        }
 
-            console.log(ev, cnt, data.times);
+        if (good) { // store the time
             if (!times[ev])
                 times[ev] = [time];
             else
@@ -761,12 +783,15 @@ function stopTimer(good) {
             if (username && username !== null && username !== 'null') { // connected to server
                 $.post("users/" + username, data, function (data) {
                     best[size] = data;
-                    displayTimes(ev, {time: time, moves: cnt, times: relayTimes||marathonTimes});
+                    displayTimes(ev, {time: time, moves: cnt, times: relayTimes||marathonTimes||memoTimes});
                 }, 'json');
 
             } else { // local
                 calcBest(ev, false, {time: time, moves: cnt, times: data.times});
             }
+        } else {
+            displayTimes(ev, {time: time, moves: cnt, times: relayTimes||marathonTimes||memoTimes});
+            
         }
     }
 }
@@ -813,8 +838,6 @@ function getStats(n, currentTime) {
             stats.best.single = currentTime;
         else if (best[n].single)
             stats.best.single = best[n].single;
-        else
-            console.log("ugh");
     } else if (best[n] && best[n].single) {
         stats.best.single = best[n].single;
     } else if (times[n].length >= 1) {
@@ -824,8 +847,6 @@ function getStats(n, currentTime) {
                 min = i;
         }
         stats.best.single = times[n][min];
-    } else {
-        console.log("no single");
     }
 
     for (i = 0; i < avgLengths.length; i++) {
@@ -883,20 +904,23 @@ function displayTimes(ev, time) {
         return;
     }
 
+    console.log(ev, time);
+
     stats = getStats(ev, time);
     document.getElementById('stats').innerHTML = formatStats(stats);
 
     if (time) {
-        console.log(time);
         if (time.moves) {
             details = getDetails(time.time, stats.size, time.moves);
             $('#moves').html(details.moves + " moves at " +
             details.mps + " moves/sec" + (details.mpp? details.mpp + " moves per piece":""));
         }
         if (time.times) {
-            $('#times').html(_.map(time.times, pretty).join(', '));
-        } else {
-            console.log(time);
+            if (ev.indexOf('bld') != -1) {
+                $('#times').html('memo: {0}, solving: {1}'.format(pretty(time.times[0]), pretty(time.times[1])));
+            } else {
+                $('#times').html(_.map(time.times, pretty).join(', '));
+            }
         }
 
     } else {
@@ -1024,7 +1048,6 @@ function loadStuff() {
         size = window.localStorage.getItem("switchtile_size");
         if (!size || size === null || typeof size != "number" || size < 2 || size > 999)
             size = 3;
-        console.log(size);
         $("#sizeText").val(size);
             
         
@@ -1034,11 +1057,9 @@ function loadStuff() {
 
         relayData = window.localStorage.getItem("switchtile_relayData") || relayData;
         relayArr = _.map(relayData.split(','), toDec);
-        console.log(relayData);
         $('#relayText').val(relayData);
 
         marathonLength = window.localStorage.getItem("switchtile_marathonData") || 3;
-        console.log(marathonLength);
         $('#marathonText').val(marathonLength);
 
         zoom = window.localStorage.getItem("switchtile_zoom");
@@ -1068,6 +1089,8 @@ function getEvent() {
     switch (pEvent) {
         case "single":
             return size;
+        case "blind":
+            return size + "bld";
         case "marathon":
             return size + "*" + marathonLength;
         case "relay":
