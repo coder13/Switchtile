@@ -265,7 +265,7 @@ function addTime(name, size, time, moves, times) {
 	} else {
 		userTimes[size] = userTimes[size].concat(time);
 	}
-	userTimes[size] = userTimes[size].slice(userTimes[size].length - 100);
+	userTimes[size] = userTimes[size].slice(-100);
 
 	if (isBest(name, size, 'single', time)) {
 		if (times)
