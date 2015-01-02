@@ -913,8 +913,8 @@ function displayTimes(ev, time, good) {
     if (time) {
         if (time.moves) {
             details = getDetails(time.time, stats.size, time.moves);
-            $('#moves').html(details.moves + " moves at " +
-            details.mps + " moves/sec" + (details.mpp? details.mpp + " moves per piece":""));
+            $('#moves').html(details.moves + " move"+(details.moves!=1?"s":"")+" at " +
+            details.mps + " moves/sec; " + (details.mpp? details.mpp + " move" + (details.mpp!=1?"s":"") + " per piece":" "));
         }
         if (time.times) {
             if (ev.indexOf('bld') != -1) {
