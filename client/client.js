@@ -348,6 +348,7 @@ function finishSolve() {
     if (pEvent == "single") {
         stopTimer(true);
         started = false;
+        solving = false;
     } else if (pEvent == "blind") {
         stopTimer(isSolved());
         started = false;
