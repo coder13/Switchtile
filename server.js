@@ -8,7 +8,6 @@ var fs = require('fs'),
 	users = {},
 	times = {};
 
-
 var logger = new(winston.Logger)({
 	transports: [
 		new(winston.transports.Console)({ // console output
@@ -265,7 +264,6 @@ function addTime(name, size, time, moves, times) {
 		userTimes[size] = userTimes[size].concat(time);
 	}
 	userTimes[size] = userTimes[size].slice(-120);
-
 	if (isBest(name, size, 'single', time)) {
 		if (times)
 			setBest(name, size, 'single', {
