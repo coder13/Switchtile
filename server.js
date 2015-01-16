@@ -8,8 +8,6 @@ var fs = require('fs'),
 	users = {},
 	times = {};
 
-
-
 var logger = new(winston.Logger)({
 	transports: [
 		new(winston.transports.Console)({ // console output
@@ -317,15 +315,23 @@ function calculateBest(name, size, calculateSingle) {
 		});
 	}
 
+
 	for (i = 0; i < avgLengths.length; i++) {
 		len = avgLengths[i];
 		if (userTimes[size].length >= len) {
 			for (j = 0; j <= userTimes[size].length - len; j++) {
-				var avg = getAvg(userTimes[size].slice(j, len + j));
-				if (!user.best[size][len]) {
+				var avg = getAvg(userTimes[size].slice(-len));
+				if (!user.best[size][len])
 					user.best[size][len] = avg;
-				} else if (j === 0 || avg.time < user.best[size][len].time) {
+				else if (avg.time <= user.best[size][len].time)
 					user.best[size][len] = avg;
+				else {
+					avg = getAvg(userTimes[size].slice(j, len + j));
+					if (!user.best[size][len]) {
+						user.best[size][len] = avg;
+					} else if (j === 0 || avg.time < user.best[size][len].time) {
+						user.best[size][len] = avg;
+					}
 				}
 			}
 		
