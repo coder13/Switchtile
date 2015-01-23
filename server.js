@@ -84,6 +84,10 @@ handlebars.registerHelper('highlight', function(value, options) {
 	return value % 2 ? 'even' : 'odd';
 });
 
+handlebars.registerHelper('pretty', function(value, options) {
+	return pretty(value);
+});
+
 // setup for serving html pages
 server.views({
 	engines: {
@@ -265,18 +269,18 @@ function addTime(name, size, time, moves, times) {
 	}
 	userTimes[size] = userTimes[size].slice(-120);
 	if (isBest(name, size, 'single', time)) {
-		if (times)
+		if (times) {
 			setBest(name, size, 'single', {
 				time: time,
 				details: getDetails(time, size, moves),
 				times: times
 			});
-		else
+		} else {
 			setBest(name, size, 'single', {
 				time: time,
 				details: getDetails(time, size, moves)
 			});
-		
+		}
 	}
 	calculateBest(name, size, false);
 }
@@ -353,7 +357,7 @@ function isBest(name, size, avg, time) {
 		users[name].best[size].single = {
 			time: times[name][min]
 		};
-		return min <= users[name].best[size][avg].time;
+		return time <= times[name][size][min];
 	}
 	return time <= users[name].best[size][avg].time;
 }
@@ -364,7 +368,7 @@ function setBest(name, size, avg, time) {
 	if (!users[name].best)
 		users[name].best = {};
 	if (!users[name].best[size])
-		users[name].best[size] = {};
+		users[name].best[size] = {}
 	users[name].best[size][avg] = time;
 	return true;
 }
@@ -427,7 +431,7 @@ function genTop(size, avg) {
 		}
 
 		if (entry) {
-			var e = {name: user, time: pretty(entry.time)};
+			var e = {name: user, time: entry.time};
 
 			if (entry.details && Object.keys(entry.details).length !== 0) {
 				e.details = entry.details;
